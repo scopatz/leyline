@@ -71,7 +71,21 @@ def check_tokens(inp, exp):
 
 
 TOKEN_CASES = {
+    ':': ['COLON', ':', 1, 0],
+    '**': ['DOUBLESTAR', '**', 1, 0],
+    '--': ['DOUBLEDASH', '--', 1, 0],
+    '~~': ['DOUBLETILDE', '~~', 1, 0],
+    '__': ['DOUBLEUNDER', '__', 1, 0],
+    '{{': ['DOUBLELBRACE', '{{', 1, 0],
+    '}}': ['DOUBLERBRACE', '}}', 1, 0],
+    '{%': ['LBRACEPERCENT', '{%', 1, 0],
+    '%}': ['PERCENTRBRACE', '%}', 1, 0],
+    '{%}': ['LBRACEPERCENTRBRACE', '{%}', 1, 0],
+    'rend': ['REND', 'rend', 1, 0],
+    'with': ['WITH', 'with', 1, 0],
+    'table': ['TABLE', 'table', 1, 0],
     'wakka jawaka': ['TEXT', 'wakka jawaka', 1, 0],
+    'wakka\njawaka': ['TEXT', 'wakka\njawaka', 1, 0],
 }
 
 @pytest.mark.parametrize('inp, exp', TOKEN_CASES.items())

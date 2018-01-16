@@ -1,4 +1,5 @@
 """The leyline language lexer."""
+import re
 from collections import deque
 
 import ply.lex
@@ -91,7 +92,6 @@ class Lexer(object):
 
     @ply.lex.TOKEN(r'(' + '|'.join(reserved.keys()) + ')')
     def t_RESERVED(self, t):
-        r'(' + '|'.join()
         t.type = self.reserved.get(t.value, 'RESERVED')
         return t
 
@@ -150,7 +150,7 @@ class Lexer(object):
     def build(self, **kwargs):
         """Build the lexer"""
         self.reset()
-        self.lexer = ply.lex.lex(module=self, **kwargs)
+        self.lexer = ply.lex.lex(module=self, reflags=re.DOTALL, **kwargs)
 
     def token(self):
         """Obtain the next token"""
