@@ -6,7 +6,9 @@ import ply.lex
 
 class Lexer(object):
 
-    _tokens = None
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.build()
 
     # lexing happens in order of precedence in the file.
 
@@ -66,7 +68,7 @@ class Lexer(object):
         return t
 
     def t_DOUBLESTAR(self, t):
-        r'**'
+        r'\*\*'
         return t
 
     def t_DOUBLETILDE(self, t):
@@ -94,7 +96,7 @@ class Lexer(object):
         return t
 
     def t_TEXT(self, t):
-        r'.*?'
+        r'.+'
         return t
 
     def t_INDENT(self, t):
@@ -138,6 +140,9 @@ class Lexer(object):
             t.lexer.input('\n')
             return t.lexer.token()
 
+    def input(self, s):
+        return self.lexer.input(s)
+
     def reset(self):
         self.queue = deque()
         self.indents = ['']
@@ -152,6 +157,14 @@ class Lexer(object):
         if self.queue:
             return self.queue.popleft()
         return self.lexer.token()
+
+    def __iter__(self):
+        t = self.token()
+        while t is not None:
+            yield t
+            t = self.token()
+
+    _tokens = None
 
     @property
     def tokens(self):
