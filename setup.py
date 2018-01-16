@@ -28,7 +28,7 @@ setup_kwargs = {
     }
 
 if HAVE_SETUPTOOLS:
-    setup_kwargs['install_requires'] = ['TexSoup', 'jinja2']
+    setup_kwargs['install_requires'] = ['ply']
 
 
 if __name__ == '__main__':

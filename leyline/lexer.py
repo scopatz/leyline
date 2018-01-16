@@ -96,25 +96,44 @@ class Lexer(object):
         r'.*?'
         return t
 
-    def t_newline(self, t):
-        r'\n+'
+    def t_INDENT(self, t):
+        r'\n[ \t]*'
         # track line numbers
-        t.lexer.lineno += len(t.value)
+        t.lexer.lineno += 1
+        i = t.value = t.value[1:]
+        last = self.indents[-1]
+        if i == last:
+            t.lexer.skip(1)
+            return
+        elif len(i) > len(last) and i.startswith(last):
+            self.indents.append(i)
+            return t
+        elif len(i) < len(last) and last.startswith(i) and self.indents[-2] == i:
+            del self.indents[-1]
+            t.type = 'DEDENT'
+            return t
+        else:
+            raise SyntaxError("Indentation level doesn't match " + str(t))
 
     # Error handling rule
     def t_error(self, t):
         print("Illegal character '%s'" % t.value[0])
         t.lexer.skip(1)
 
-    # Build the lexer
+    def reset(self):
+        self.indents = ['']
+
+
     def build(self, **kwargs):
         """Build the lexer"""
+        self.reset()
         self.lexer = ply.lex.lex(module=self, **kwargs)
 
     @property
     def tokens(self):
         if self._tokens is None:
             toks = [t[2:] for t in dir(self) if t.startswith('t_') and t[2:].upper() == t[2:]]
-            toks.append(self.reserved.values())
+            toks.extend(self.reserved.values())
+            toks.append('DEDENT')
             self._tokens = tuple(toks)
         return self._tokens
