@@ -1,5 +1,6 @@
 """The leyline language lexer."""
 import re
+from textwrap import dedent
 from collections import deque
 
 import ply.lex
@@ -14,24 +15,24 @@ class Lexer(object):
     # lexing happens in order of precedence in the file.
 
     def t_MULTILINECOMMENT(self, t):
-        r"[^#\\]*(?:(?:\\.|[#](?![#][#][#]))[^[#]\\]*)*[#][#][#]"
+        r"[#][#][#][^#\\]*(?:(?:\\.|[#](?![#][#][#]))[^[#]\\]*)*[#][#][#]"
         t.value = t.value[3:-3]
         return t
 
     def t_CODEBLOCK(self, t):
-        r"[^`\\]*(?:(?:\\.|`(?!``))[^`\\]*)*```"
+        r"```[^`\\]*(?:(?:\\.|`(?!``))[^`\\]*)*```"
         lang, _, block = t.value[3:-3].partition('\n')
-        t.value = (lang.strip(), block.strip())
+        t.value = (lang.strip(), dedent(block))
         return t
 
     def t_MULTILINEMATH(self, t):
-        r"[^\$\\]*(?:(?:\\.|\$(?!\$\$))[^\$\\]*)*\$\$\$"
+        r"\$\$\$[^\$\\]*(?:(?:\\.|\$(?!\$\$))[^\$\\]*)*\$\$\$"
         t.value = t.value[3:-3]
         return t
 
     def t_COMMENT(self, t):
         r'[#][^\r\n]*'
-        t.value = t[1:].strip()
+        t.value = t.value[1:].strip()
         return t
 
     def t_INLINECODE(self, t):

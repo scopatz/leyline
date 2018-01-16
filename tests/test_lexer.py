@@ -86,6 +86,15 @@ TOKEN_CASES = {
     'table': ['TABLE', 'table', 1, 0],
     'wakka jawaka': ['TEXT', 'wakka jawaka', 1, 0],
     'wakka\njawaka': ['TEXT', 'wakka\njawaka', 1, 0],
+    '`x = 10`': ['INLINECODE', 'x = 10', 1, 0],
+    '```\nx=10\n```': ['CODEBLOCK', ('', 'x=10\n'), 1, 0],
+    '```python\nx=10\n```': ['CODEBLOCK', ('python', 'x=10\n'), 1, 0],
+    '# Just a comment ': ['COMMENT', 'Just a comment', 1, 0],
+    '###\nI have\na really long comment###': ['MULTILINECOMMENT',
+                                              '\nI have\na really long comment', 1, 0],
+    '$e^{i\pi} = -1$': ['INLINEMATH', 'e^{i\pi} = -1', 1, 0],
+    '$$$\ne^{i\pi} = -1\n$$$': ['MULTILINEMATH', '\ne^{i\pi} = -1\n', 1, 0],
+    '$$$inline math $=$ inside$$$': ['MULTILINEMATH', 'inline math $=$ inside', 1, 0],
 }
 
 @pytest.mark.parametrize('inp, exp', TOKEN_CASES.items())
