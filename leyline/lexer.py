@@ -1,4 +1,5 @@
 """The leyline language lexer."""
+from collections import deque
 
 import ply.lex
 
@@ -108,9 +109,19 @@ class Lexer(object):
         elif len(i) > len(last) and i.startswith(last):
             self.indents.append(i)
             return t
-        elif len(i) < len(last) and last.startswith(i) and self.indents[-2] == i:
+        elif len(i) < len(last) and last.startswith(i):
             del self.indents[-1]
+            last = self.indents[-1]
             t.type = 'DEDENT'
+            while len(i) < len(last) and last.startswith(i):
+                dedent = ply.lex.LexToken()
+                dedent.type = 'DEDENT'
+                dedent.value = last
+                dedent.lineno = t.lineno
+                dedent.lexpos = t.lexpos
+                self.queue.append(dedent)
+                del self.indents[-1]
+                last = self.indents[-1]
             return t
         else:
             raise SyntaxError("Indentation level doesn't match " + str(t))
@@ -120,14 +131,27 @@ class Lexer(object):
         print("Illegal character '%s'" % t.value[0])
         t.lexer.skip(1)
 
-    def reset(self):
-        self.indents = ['']
+    def t_eof(self, t):
+        """Handle end of file conditions"""
+        if len(self.indents) > 1:
+            # dedent the world at the end of the file.
+            t.lexer.input('\n')
+            return t.lexer.token()
 
+    def reset(self):
+        self.queue = deque()
+        self.indents = ['']
 
     def build(self, **kwargs):
         """Build the lexer"""
         self.reset()
         self.lexer = ply.lex.lex(module=self, **kwargs)
+
+    def token(self):
+        """Obtain the next token"""
+        if self.queue:
+            return self.queue.popleft()
+        return self.lexer.token()
 
     @property
     def tokens(self):
