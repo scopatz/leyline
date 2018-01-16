@@ -96,14 +96,11 @@ class Lexer(object):
         t.type = self.reserved.get(t.value, 'RESERVED')
         return t
 
-    def t_TEXT(self, t):
-        r'.+'
-        return t
-
     def t_INDENT(self, t):
         r'\n[ \t]*'
         # track line numbers
         t.lexer.lineno += 1
+        t.lineno = t.lexer.lineno
         i = t.value = t.value[1:]
         last = self.indents[-1]
         if i == last:
@@ -129,17 +126,34 @@ class Lexer(object):
         else:
             raise SyntaxError("Indentation level doesn't match " + str(t))
 
+    @ply.lex.TOKEN(r'(?!(|\*\*|__)+)')
+    def t_TEXT(self, t):
+        #r'.+?'
+        return t
+
     # Error handling rule
     def t_error(self, t):
         print("Illegal character '%s'" % t.value[0])
         t.lexer.skip(1)
+        #t.type = 'TEXT'
+        #return t
 
     def t_eof(self, t):
         """Handle end of file conditions"""
-        if len(self.indents) > 1:
-            # dedent the world at the end of the file.
-            t.lexer.input('\n')
-            return t.lexer.token()
+        # dedent the world at the end of the file.
+        if len(self.indents) == 1:
+            return
+        last = self.indents[-1]
+        while len(self.indents) > 1:
+            dedent = ply.lex.LexToken()
+            dedent.type = 'DEDENT'
+            dedent.value = last
+            dedent.lineno = t.lineno
+            dedent.lexpos = t.lexpos
+            self.queue.append(dedent)
+            del self.indents[-1]
+            last = self.indents[-1]
+        return self.token()
 
     def input(self, s):
         return self.lexer.input(s)

@@ -100,3 +100,27 @@ TOKEN_CASES = {
 @pytest.mark.parametrize('inp, exp', TOKEN_CASES.items())
 def test_token(inp, exp):
     assert check_token(inp, exp)
+
+
+TOKENS_CASES = {
+    'with:\n  x = 10\n  y = 42': [
+        ['WITH', 'with', 1, 0],
+        ['COLON', ':', 1, 4],
+        ['INDENT', '  ', 2, 5],
+        ['TEXT', 'x = 10\n  y = 42', 2, 8],
+        ['DEDENT', '  ', 2, 23],
+        ],
+    '**__Bold And\nUnderline!__**': [
+        ['DOUBLESTAR', '**', 1, 0],
+        ['DOUBLEUNDER', '__', 1, 2],
+        ['TEXT', 'Bold And\nUnderline', 1, 4],
+        ['DOUBLEUNDER', '__', 2, 12],
+        ['DOUBLESTAR', '**', 2, 14],
+        ],
+}
+
+@pytest.mark.parametrize('inp, exp', TOKENS_CASES.items())
+def test_tokens(inp, exp):
+    assert check_tokens(inp, exp)
+
+
