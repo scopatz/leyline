@@ -103,16 +103,17 @@ class Lexer(object):
         r'\n+[ \t]*'
         # track line numbers
         t.lexer.lineno += t.value.count('\n')
-        t.lineno = t.lexer.lineno
-        orig = t.value
-        i = t.value = t.value.lstrip('\n')
+        i = t.value.lstrip('\n')
         last = self.indents[-1]
         if i == last:
-            t.lexer.skip(1)
-            return
-        elif len(i) > len(last) and i.startswith(last):
-            self.indents.append(i)
+            # return if this basically text
+            t.type = 'TEXT'
             return t
+        # now we know we have an indent or a dedent
+        t.lineno = t.lexer.lineno
+        t.value = i
+        if len(i) > len(last) and i.startswith(last):
+            self.indents.append(i)
         elif len(i) < len(last) and last.startswith(i):
             del self.indents[-1]
             last = self.indents[-1]
@@ -126,9 +127,9 @@ class Lexer(object):
                 self.queue.append(dedent)
                 del self.indents[-1]
                 last = self.indents[-1]
-            return t
         else:
             raise SyntaxError("Indentation level doesn't match " + str(t))
+        return t
 
     text_breaks = '\n#`${}%-*~_:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
 
@@ -180,9 +181,18 @@ class Lexer(object):
 
     def token(self):
         """Obtain the next token"""
+        # consume current queu
         if self.queue:
             return self.queue.popleft()
-        return self.lexer.token()
+        # merge text tokens
+        t = self.lexer.token()
+        if t is not None and t.type == 'TEXT':
+            next = self.lexer.token()
+            while next is not None and next.type == 'TEXT':
+                t.value += next.value
+                next = self.lexer.token()
+            self.queue.append(next)
+        return t
 
     def __iter__(self):
         t = self.token()
