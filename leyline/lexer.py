@@ -16,17 +16,20 @@ class Lexer(object):
 
     def t_MULTILINECOMMENT(self, t):
         r"[#][#][#][^#\\]*(?:(?:\\.|[#](?![#][#][#]))[^[#]\\]*)*[#][#][#]"
+        t.lexer.lineno += t.value.count('\n')
         t.value = t.value[3:-3]
         return t
 
     def t_CODEBLOCK(self, t):
         r"```[^`\\]*(?:(?:\\.|`(?!``))[^`\\]*)*```"
+        t.lexer.lineno += t.value.count('\n')
         lang, _, block = t.value[3:-3].partition('\n')
         t.value = (lang.strip(), dedent(block))
         return t
 
     def t_MULTILINEMATH(self, t):
         r"\$\$\$[^\$\\]*(?:(?:\\.|\$(?!\$\$))[^\$\\]*)*\$\$\$"
+        t.lexer.lineno += t.value.count('\n')
         t.value = t.value[3:-3]
         return t
 
@@ -97,11 +100,12 @@ class Lexer(object):
         return t
 
     def t_INDENT(self, t):
-        r'\n[ \t]*'
+        r'\n+[ \t]*'
         # track line numbers
-        t.lexer.lineno += 1
+        t.lexer.lineno += t.value.count('\n')
         t.lineno = t.lexer.lineno
-        i = t.value = t.value[1:]
+        orig = t.value
+        i = t.value = t.value.lstrip('\n')
         last = self.indents[-1]
         if i == last:
             t.lexer.skip(1)
@@ -126,10 +130,14 @@ class Lexer(object):
         else:
             raise SyntaxError("Indentation level doesn't match " + str(t))
 
-    text_breaks = ('[#]', '`', '$', '{%', '%}', '{{', '}}',
-                   '--', '\*\*', '~~', '__', ':') + tuple(sorted(reserved.keys()))
+    text_breaks = '\n#`${}%-*~_:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
 
-    @ply.lex.TOKEN(r'((?!' + '|'.join(text_breaks) + ').)+')
+    @ply.lex.TOKEN('[' + text_breaks + ']')
+    def t_UNBREAKTEXT(self, t):
+        t.type = 'TEXT'
+        return t
+
+    @ply.lex.TOKEN('[^' + text_breaks + ']+')
     def t_TEXT(self, t):
         t.lexer.lineno += t.value.count('\n')
         return t

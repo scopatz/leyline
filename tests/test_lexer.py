@@ -126,6 +126,16 @@ TOKENS_CASES = {
         ['DOUBLEUNDER', '__', 2, 23],
         ['DOUBLESTAR', '**', 2, 25],
         ],
+    'Please stay with me': [
+        ['TEXT', 'Please stay ', 1, 0],
+        ['WITH', 'with', 1, 12],
+        ['TEXT', ' me', 1, 16],
+        ],
+    'text and \n```rst\ncode block\n```\nand more text': [
+        ['TEXT', 'text and \n', 1, 0],
+        ['CODEBLOCK', ('rst', 'code block\n'), 2, 10],
+        ['TEXT', '\nand more text', 4, 31],
+        ],
 }
 
 @pytest.mark.parametrize('inp, exp', TOKENS_CASES.items())
