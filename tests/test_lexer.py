@@ -7,6 +7,11 @@ from ply.lex import LexToken
 from leyline.lexer import Lexer
 
 LEXER_ARGS = {'lextab': 'lexer_test_table', 'debug': 0}
+TOKTEMPLATE = 'LexToken({0!r}, {1!r}, {2}, {3})'
+
+
+def tokstr(x):
+    if isinstance(x, LexToken):
 
 def ensure_tuple(x):
     if isinstance(x, LexToken):
@@ -32,7 +37,7 @@ def tokens_equal(x, y):
 def assert_token_equal(x, y):
     """Asserts that two tokens are equal."""
     if not tokens_equal(x, y):
-        msg = 'The tokens differ: {0!r} != {1!r}'.format(x, y)
+        msg = 'The tokens differ: {x!r},  != {y!r}'.format(x=x, y=y)
         pytest.fail(msg)
     return True
 
@@ -47,6 +52,7 @@ def assert_tokens_equal(x, y):
     if len(diffs) > 0:
         msg = ['The token sequences differ: ']
         for a, b in diffs:
+            astr
             msg += ['', '- ' + repr(a), '+ ' + repr(b)]
         msg = '\n'.join(msg)
         pytest.fail(msg)

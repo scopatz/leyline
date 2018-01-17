@@ -126,7 +126,7 @@ class Lexer(object):
         else:
             raise SyntaxError("Indentation level doesn't match " + str(t))
 
-    @ply.lex.TOKEN(r'(?!(|\*\*|__)+)')
+    @ply.lex.TOKEN(r'((?!\*\*|__).)+')
     def t_TEXT(self, t):
         #r'.+?'
         return t
