@@ -128,7 +128,7 @@ class Lexer(object):
 
     @ply.lex.TOKEN(r'((?!\*\*|__).)+')
     def t_TEXT(self, t):
-        #r'.+?'
+        t.lexer.lineno += t.value.count('\n')
         return t
 
     # Error handling rule

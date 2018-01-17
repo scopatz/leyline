@@ -117,14 +117,14 @@ TOKENS_CASES = {
         ['COLON', ':', 1, 4],
         ['INDENT', '  ', 2, 5],
         ['TEXT', 'x = 10\n  y = 42', 2, 8],
-        ['DEDENT', '  ', 2, 23],
+        ['DEDENT', '  ', 3, 23],
         ],
     '**__Bold And\nUnderline!__**': [
         ['DOUBLESTAR', '**', 1, 0],
         ['DOUBLEUNDER', '__', 1, 2],
-        ['TEXT', 'Bold And\nUnderline', 1, 4],
-        ['DOUBLEUNDER', '__', 2, 12],
-        ['DOUBLESTAR', '**', 2, 14],
+        ['TEXT', 'Bold And\nUnderline!', 1, 4],
+        ['DOUBLEUNDER', '__', 2, 23],
+        ['DOUBLESTAR', '**', 2, 25],
         ],
 }
 
