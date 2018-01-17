@@ -91,7 +91,7 @@ class Lexer(object):
         'table': 'TABLE',
         }
 
-    @ply.lex.TOKEN(r'(' + '|'.join(reserved.keys()) + ')')
+    @ply.lex.TOKEN(r'(' + '|'.join(sorted(reserved.keys())) + ')')
     def t_RESERVED(self, t):
         t.type = self.reserved.get(t.value, 'RESERVED')
         return t
@@ -126,7 +126,10 @@ class Lexer(object):
         else:
             raise SyntaxError("Indentation level doesn't match " + str(t))
 
-    @ply.lex.TOKEN(r'((?!\*\*|__).)+')
+    text_breaks = ('[#]', '`', '$', '{%', '%}', '{{', '}}',
+                   '--', '\*\*', '~~', '__', ':') + tuple(sorted(reserved.keys()))
+
+    @ply.lex.TOKEN(r'((?!' + '|'.join(text_breaks) + ').)+')
     def t_TEXT(self, t):
         t.lexer.lineno += t.value.count('\n')
         return t
