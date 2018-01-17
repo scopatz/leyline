@@ -12,6 +12,9 @@ TOKTEMPLATE = 'LexToken({0!r}, {1!r}, {2}, {3})'
 
 def tokstr(x):
     if isinstance(x, LexToken):
+        x = (x.type, x.value, x.lineno, x.lexpos)
+    s = TOKTEMPLATE.format(*x)
+    return s
 
 def ensure_tuple(x):
     if isinstance(x, LexToken):
@@ -37,7 +40,7 @@ def tokens_equal(x, y):
 def assert_token_equal(x, y):
     """Asserts that two tokens are equal."""
     if not tokens_equal(x, y):
-        msg = 'The tokens differ: {x!r},  != {y!r}'.format(x=x, y=y)
+        msg = 'The tokens differ: {x} != {y}'.format(x=tokstr(x), y=tokstr(y))
         pytest.fail(msg)
     return True
 
@@ -48,15 +51,15 @@ def assert_tokens_equal(x, y):
         msg = 'The tokens sequences have different lengths: {0!r} != {1!r}\n'
         msg += '# x\n{2}\n\n# y\n{3}'
         pytest.fail(msg.format(len(x), len(y), pformat(x), pformat(y)))
-    diffs = [(a, b) for a, b in zip(x, y) if not tokens_equal(a, b)]
+    diffs = [(i, a, b) for i, (a, b) in enumerate(zip(x, y)) if not tokens_equal(a, b)]
     if len(diffs) > 0:
         msg = ['The token sequences differ: ']
-        for a, b in diffs:
-            astr
-            msg += ['', '- ' + repr(a), '+ ' + repr(b)]
+        for i, a, b in diffs:
+            msg += ['', 'Index ' + str(i), '- ' + tokstr(a), '+ ' + tokstr(b)]
         msg = '\n'.join(msg)
         pytest.fail(msg)
     return True
+
 
 def check_token(inp, exp):
     l = Lexer()
