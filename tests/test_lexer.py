@@ -94,6 +94,7 @@ TOKEN_CASES = {
     'with': ['WITH', 'with', 1, 0],
     'table': ['TABLE', 'table', 1, 0],
     'dash-ing': ['TEXT', 'dash-ing', 1, 0],
+    '{braced}': ['TEXT', '{braced}', 1, 0],
     'wakka jawaka': ['TEXT', 'wakka jawaka', 1, 0],
     'wakka\njawaka': ['TEXT', 'wakka\njawaka', 1, 0],
     '`x = 10`': ['INLINECODE', 'x = 10', 1, 0],
