@@ -4,7 +4,8 @@ import os
 import ply.yacc
 
 from leyline.lexer import Lexer
-from leyline.ast import Document, Text, TextBlock, Comment, CodeBlock, Bold
+from leyline.ast import (Document, Text, TextBlock, Comment, CodeBlock, Bold,
+    Italics, Underline, Strikethrough)
 
 
 class Parser(object):
@@ -40,7 +41,8 @@ class Parser(object):
         self._lines = None
         self.leyline_doc = None
 
-        tok_rules = ['text', 'doublestar']
+        tok_rules = ['text', 'doubledash', 'doublestar', 'doubletilde',
+                     'doubleunder']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -115,6 +117,11 @@ class Parser(object):
             self._lines = self.leyline_doc.splitlines(keepends=True)
         return self._lines
 
+    #precedence = (
+    #    ('left', 'DOUBLEDASH', 'DOUBLESTAR', 'DOUBLETILDE', 'DOUBLEUNDER'),
+    #    ('left', 'TEXT'),
+    #    )
+
     #
     # Parsing rules
     #
@@ -154,30 +161,78 @@ class Parser(object):
     #
 
     def p_textblock_entry_text(self, p):
-        """textblock_entry : text_tok"""
+        """textblock_entry          : text_tok
+           not_bold_entry           : text_tok
+           not_italics_entry        : text_tok
+           not_underline_entry      : text_tok
+           not_strikethrough_entry  : text_tok
+        """
         t = p[1]
         p[0] = Text(text=t.value, lineno=t.lineno, column=t.column)
 
-    def p_textblock_entry_bold(self, p):
-        """textblock_entry : bold"""
+    def p_textblock_entry_formatted_text(self, p):
+        """textblock_entry          : bold
+                                    | italics
+                                    | underline
+                                    | strikethrough
+           not_bold_entry           : italics
+                                    | underline
+                                    | strikethrough
+           not_italics_entry        : bold
+                                    | underline
+                                    | strikethrough
+           not_underline_entry      : bold
+                                    | italics
+                                    | strikethrough
+           not_strikethrough_entry  : bold
+                                    | italics
+                                    | underline
+        """
         p[0] = p[1]
 
     def p_textblock_single(self, p):
-        """textblock : textblock_entry"""
+        """textblock              : textblock_entry
+           not_boldblock          : not_bold_entry
+           not_italicsblock       : not_italics_entry
+           not_underlineblock     : not_underline_entry
+           not_strikethroughblock : not_strikethrough_entry
+        """
         p1 = p[1]
         p[0] = TextBlock(body=[p1], lineno=p1.lineno, column=p1.column)
 
     def p_textblock_append(self, p):
-        """textblock : textblock textblock_entry"""
+        """textblock              : textblock textblock_entry
+           not_boldblock          : not_boldblock not_bold_entry
+           not_italicsblock       : not_italicsblock not_italics_entry
+           not_underlineblock     : not_underlineblock not_underline_entry
+           not_strikethroughblock : not_strikethroughblock not_strikethrough_entry
+        """
         p1 = p[1]
         p1.body.append(p[2])
         p[0] = p1
+
 
     #
     # Define some inline formatting
     #
 
     def p_bold(self, p):
-        """bold : doublestar_tok textblock DOUBLESTAR"""
+        """bold : doublestar_tok not_boldblock DOUBLESTAR"""
         p1 = p[1]
         p[0] = Bold(lineno=p1.lineno, column=p1.column, body=p[2].body)
+
+    def p_italics(self, p):
+        """italics : doubletilde_tok not_italicsblock DOUBLETILDE"""
+        p1 = p[1]
+        p[0] = Italics(lineno=p1.lineno, column=p1.column, body=p[2].body)
+
+    def p_underline(self, p):
+        """underline : doubleunder_tok not_underlineblock DOUBLEUNDER"""
+        p1 = p[1]
+        p[0] = Underline(lineno=p1.lineno, column=p1.column, body=p[2].body)
+
+    def p_strikethrough(self, p):
+        """strikethrough : doubledash_tok not_strikethroughblock DOUBLEDASH"""
+        p1 = p[1]
+        p[0] = Strikethrough(lineno=p1.lineno, column=p1.column, body=p[2].body)
+
