@@ -1,6 +1,6 @@
 """Tests for leyline parser"""
 from leyline.parser import Parser
-from leyline.ast import Document, Text, TextBlock
+from leyline.ast import Document, Text, TextBlock, Bold
 
 import pytest
 
@@ -12,6 +12,13 @@ PARSE_CASES = {
     'hello world': Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
             Text(lineno=1, column=1, text='hello world')])
+        ]),
+    'hello **world**': Document(lineno=1, column=1, body=[
+        TextBlock(lineno=1, column=1, body=[
+            Text(lineno=1, column=1, text='hello '),
+            Bold(lineno=1, column=7, body=[
+                Text(lineno=1, column=9, text='world')])
+            ])
         ]),
 }
 

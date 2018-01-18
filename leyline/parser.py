@@ -4,7 +4,7 @@ import os
 import ply.yacc
 
 from leyline.lexer import Lexer
-from leyline.ast import Document, Text, TextBlock, Comment, CodeBlock
+from leyline.ast import Document, Text, TextBlock, Comment, CodeBlock, Bold
 
 
 class Parser(object):
@@ -40,7 +40,7 @@ class Parser(object):
         self._lines = None
         self.leyline_doc = None
 
-        tok_rules = ['text']
+        tok_rules = ['text', 'doublestar']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -153,10 +153,14 @@ class Parser(object):
     # Define text blocks
     #
 
-    def p_textblock_entry(self, p):
+    def p_textblock_entry_text(self, p):
         """textblock_entry : text_tok"""
         t = p[1]
         p[0] = Text(text=t.value, lineno=t.lineno, column=t.column)
+
+    def p_textblock_entry_bold(self, p):
+        """textblock_entry : bold"""
+        p[0] = p[1]
 
     def p_textblock_single(self, p):
         """textblock : textblock_entry"""
@@ -168,3 +172,12 @@ class Parser(object):
         p1 = p[1]
         p1.body.append(p[2])
         p[0] = p1
+
+    #
+    # Define some inline formatting
+    #
+
+    def p_bold(self, p):
+        """bold : doublestar_tok textblock DOUBLESTAR"""
+        p1 = p[1]
+        p[0] = Bold(lineno=p1.lineno, column=p1.column, body=p[2].body)
