@@ -4,7 +4,8 @@ import os
 import ply.yacc
 
 from leyline.lexer import Lexer
-from leyline.ast import Document, Text, Comment, CodeBlock
+from leyline.ast import Document, Text, TextBlock, Comment, CodeBlock
+
 
 class Parser(object):
     """A base class that parses the xonsh language."""
@@ -92,8 +93,46 @@ class Parser(object):
         """start_symbols : empty"""
         p[0] = Document(lineno=1, column=1)
 
+    def p_start_symbols_blocks(self, p):
+        """start_symbols : blocks"""
+        p[0] = Document(body=p[1], lineno=1, column=1)
+
     def p_empty(self, p):
-        'empty : '
+        """empty : """
         p[0] = None
 
+    #
+    # Define blocks and block lists
+    #
 
+    def p_block(self, p):
+        """block : textblock"""
+        p[0] = p[1]
+
+    def p_blocks_single(self, p):
+        """blocks : block"""
+        p[0] = [p[1]]
+
+    def p_blocks_append(self, p):
+        """blocks : blocks block"""
+        p1 = p[1]
+        p1.append(p[2])
+        p[0] = p1
+
+    #
+    # Define text blocks
+    #
+
+    def p_textblock_entry(self, p):
+        """textblock_entry : TEXT"""
+        p[0] = Text(text=p[1])
+
+    def p_textblock_single(self, p):
+        """textblock : textblock_entry"""
+        p[0] = TextBlock(body=[p[1]])
+
+    def p_textblock_append(self, p):
+        """textblock : textblock textblock_entry"""
+        p1 = p[1]
+        p1.body.append(p[2])
+        p[0] = p1

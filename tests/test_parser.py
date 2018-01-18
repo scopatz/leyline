@@ -1,6 +1,6 @@
 """Tests for leyline parser"""
 from leyline.parser import Parser
-from leyline.ast import Document, Text
+from leyline.ast import Document, Text, TextBlock
 
 import pytest
 
@@ -9,6 +9,9 @@ PARSER = Parser(lexer_optimize=False, yacc_optimize=False, yacc_debug=True)
 
 PARSE_CASES = {
     '': Document(lineno=1, column=1),
+    'hello world': Document(lineno=1, column=1, body=[
+        TextBlock(body=[Text(text='hello world')])
+        ]),
 }
 
 

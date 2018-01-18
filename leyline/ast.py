@@ -55,6 +55,12 @@ class Text(Node):
     attrs = (('text', ''),)
 
 
+class TextBlock(Node):
+    """Represents formatted text."""
+
+    attrs = (('body', list),)
+
+
 class Comment(Node):
     """Represents a comment in the text"""
 

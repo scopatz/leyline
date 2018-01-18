@@ -16,12 +16,14 @@ class Lexer(object):
 
     def t_MULTILINECOMMENT(self, t):
         r"[#][#][#][^#\\]*(?:(?:\\.|[#](?![#][#][#]))[^[#]\\]*)*[#][#][#]"
+        self._set_column(t)
         t.lexer.lineno += t.value.count('\n')
         t.value = t.value[3:-3]
         return t
 
     def t_CODEBLOCK(self, t):
         r"```[^`\\]*(?:(?:\\.|`(?!``))[^`\\]*)*```"
+        self._set_column(t)
         t.lexer.lineno += t.value.count('\n')
         lang, _, block = t.value[3:-3].partition('\n')
         t.value = (lang.strip(), dedent(block))
@@ -29,63 +31,77 @@ class Lexer(object):
 
     def t_MULTILINEMATH(self, t):
         r"\$\$\$[^\$\\]*(?:(?:\\.|\$(?!\$\$))[^\$\\]*)*\$\$\$"
+        self._set_column(t)
         t.lexer.lineno += t.value.count('\n')
         t.value = t.value[3:-3]
         return t
 
     def t_COMMENT(self, t):
         r'[#][^\r\n]*'
+        self._set_column(t)
         t.value = t.value[1:].strip()
         return t
 
     def t_INLINECODE(self, t):
         r"`([^\n`\\]*(?:\\.[^\n`\\]*)*)`"
+        self._set_column(t)
         t.value = t.value[1:-1]
         return t
 
     def t_INLINEMATH(self, t):
         r"\$([^\n\$\\]*(?:\\.[^\n\$\\]*)*)\$"
+        self._set_column(t)
         t.value = t.value[1:-1]
         return t
 
     def t_LBRACEPERCENTRBRACE(self, t):
         r'{%}'
+        self._set_column(t)
         return t
 
     def t_LBRACEPERCENT(self, t):
         r'{%'
+        self._set_column(t)
         return t
 
     def t_PERCENTRBRACE(self, t):
         r'%}'
+        self._set_column(t)
         return t
 
     def t_DOUBLELBRACE(self, t):
         r'{{'
+        self._set_column(t)
         return t
 
     def t_DOUBLERBRACE(self, t):
         r'}}'
+        self._set_column(t)
         return t
 
     def t_DOUBLEDASH(self, t):
         r'--'
+        self._set_column(t)
         return t
 
     def t_DOUBLESTAR(self, t):
         r'\*\*'
+        self._set_column(t)
         return t
 
     def t_DOUBLETILDE(self, t):
         r'~~'
+        self._set_column(t)
         return t
 
     def t_DOUBLEUNDER(self, t):
         r'__'
+        self._set_column(t)
         return t
 
     def t_COLON(self, t):
         r':'
+        self._set_column(t)
         return t
 
     reserved = {
@@ -96,6 +112,7 @@ class Lexer(object):
 
     @ply.lex.TOKEN(r'(' + '|'.join(sorted(reserved.keys())) + ')')
     def t_RESERVED(self, t):
+        self._set_column(t)
         t.type = self.reserved.get(t.value, 'RESERVED')
         return t
 
@@ -107,10 +124,12 @@ class Lexer(object):
         last = self.indents[-1]
         if i == last:
             # return if this basically text
+            self._set_column(t)
             t.type = 'TEXT'
             return t
         # now we know we have an indent or a dedent
         t.lineno = t.lexer.lineno
+        t.column = 1
         t.value = i
         if len(i) > len(last) and i.startswith(last):
             self.indents.append(i)
@@ -135,11 +154,13 @@ class Lexer(object):
 
     @ply.lex.TOKEN('[' + text_breaks + ']')
     def t_UNBREAKTEXT(self, t):
+        self._set_column(t)
         t.type = 'TEXT'
         return t
 
     @ply.lex.TOKEN('[^' + text_breaks + ']+')
     def t_TEXT(self, t):
+        self._set_column(t)
         t.lexer.lineno += t.value.count('\n')
         return t
 
@@ -162,15 +183,18 @@ class Lexer(object):
             dedent.value = last
             dedent.lineno = t.lineno
             dedent.lexpos = t.lexpos
+            dedent.column = 1
             self.queue.append(dedent)
             del self.indents[-1]
             last = self.indents[-1]
         return self.token()
 
     def input(self, s):
+        self.inp = s
         return self.lexer.input(s)
 
     def reset(self):
+        self.inp = None
         self.queue = deque()
         self.indents = ['']
 
@@ -210,3 +234,13 @@ class Lexer(object):
             toks.append('DEDENT')
             self._tokens = tuple(toks)
         return self._tokens
+
+    def _set_column(self, t):
+        """Sets the column number of the token."""
+        p = t.lexpos
+        q = self.inp.rfind('\n', 0, p)
+        if q < 0:
+            col = p + 1
+        else:
+            col = p - q
+        t.column = col
