@@ -1,11 +1,12 @@
 """Parser for leyline"""
 import os
+from textwrap import dedent
 
 import ply.yacc
 
 from leyline.lexer import Lexer
 from leyline.ast import (Document, Text, TextBlock, Comment, CodeBlock, Bold,
-    Italics, Underline, Strikethrough)
+    Italics, Underline, Strikethrough, With)
 
 
 class Parser(object):
@@ -41,8 +42,10 @@ class Parser(object):
         self._lines = None
         self.leyline_doc = None
 
+        self._attach_nodedent_base_rules()
+
         tok_rules = ['text', 'doubledash', 'doublestar', 'doubletilde',
-                     'doubleunder']
+                     'doubleunder', 'with', 'indent', 'dedent']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -82,7 +85,6 @@ class Parser(object):
         tokfunc.__name__ = 'p_' + rulename + '_tok'
         setattr(self.__class__, tokfunc.__name__, tokfunc)
 
-
     def reset(self):
         """Resets for clean parsing."""
         self.lexer.reset()
@@ -117,11 +119,6 @@ class Parser(object):
             self._lines = self.leyline_doc.splitlines(keepends=True)
         return self._lines
 
-    #precedence = (
-    #    ('left', 'DOUBLEDASH', 'DOUBLESTAR', 'DOUBLETILDE', 'DOUBLEUNDER'),
-    #    ('left', 'TEXT'),
-    #    )
-
     #
     # Parsing rules
     #
@@ -143,7 +140,9 @@ class Parser(object):
     #
 
     def p_block(self, p):
-        """block : textblock"""
+        """block : textblock
+                 | withblock
+        """
         p[0] = p[1]
 
     def p_blocks_single(self, p):
@@ -155,6 +154,17 @@ class Parser(object):
         p1 = p[1]
         p1.append(p[2])
         p[0] = p1
+
+    #
+    # with blocks
+    #
+
+    def p_with_null(self, p):
+        """withblock : with_tok COLON indent_tok nodedent dedent_tok"""
+        p1 = p[1]
+        text = self.leyline_doc[p[3].lexpos:p[5].lexpos]
+        text = dedent(text.strip('\n'))
+        p[0] = With(lineno=p1.lineno, column=p1.column, text=text)
 
     #
     # Define text blocks
@@ -236,3 +246,38 @@ class Parser(object):
         p1 = p[1]
         p[0] = Strikethrough(lineno=p1.lineno, column=p1.column, body=p[2].body)
 
+    #
+    # represent a block that doesn't dedent past the current
+    # indentation level
+    #
+
+    def _attach_nodedent_base_rules(self):
+        toks = set(self.tokens)
+        toks.remove('DEDENT')
+        ts = '\n       | '.join(sorted(toks))
+        doc = 'nodedent : ' + ts + '\n'
+        self.p_nodedent_base.__func__.__doc__ = doc
+
+    def p_nodedent_base(self, p):
+        # see above attachment function
+        pass
+
+    def p_nodedent_any(self, p):
+        """nodedent : INDENT any_dedent_toks DEDENT"""
+        pass
+
+    def p_nodedent_many(self, p):
+        """nodedent : nodedent nodedent"""
+        pass
+
+    def p_any_dedent_tok(self, p):
+        """any_dedent_tok : nodedent
+                          | DEDENT
+        """
+        pass
+
+    def p_any_dedent_toks(self, p):
+        """any_dedent_toks : any_dedent_tok
+                           | any_dedent_toks any_dedent_tok
+        """
+        pass

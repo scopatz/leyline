@@ -1,7 +1,7 @@
 """Tests for leyline parser"""
 from leyline.parser import Parser
 from leyline.ast import (Document, Text, TextBlock, Bold, Italics,
-    Underline, Strikethrough)
+    Underline, Strikethrough, With)
 
 import pytest
 
@@ -38,6 +38,9 @@ PARSE_CASES = {
                     Text(lineno=1, column=11, text='world')])
                 ])
             ])
+        ]),
+    'with:\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
+        With(lineno=1, column=1, ctx='', text='x = (\n  1, 2,\n)'),
         ]),
 }
 

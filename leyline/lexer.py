@@ -194,14 +194,15 @@ class Lexer(object):
         return self.lexer.input(s)
 
     def reset(self):
+        self.lexer.lineno = 1
         self.inp = self.last = self.beforelast = None
         self.queue = deque()
         self.indents = ['']
 
     def build(self, **kwargs):
         """Build the lexer"""
-        self.reset()
         self.lexer = ply.lex.lex(module=self, reflags=re.DOTALL, **kwargs)
+        self.reset()
 
     def _next_token(self):
         """Obtain the next token"""
