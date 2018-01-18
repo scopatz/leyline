@@ -18,6 +18,12 @@ class Node:
                 value = default() if callable(default) else default
             setattr(self, attr, value)
 
+    def __str__(self):
+        return PrettyFormatter(self).visit()
+
+    def __repr__(self):
+        return str(self).replace('\n', '')
+
 
 class Document(Node):
     """Top-level document that contains a list of children"""
