@@ -42,6 +42,12 @@ PARSE_CASES = {
     'with:\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
         With(lineno=1, column=1, ctx='', text='x = (\n  1, 2,\n)'),
         ]),
+    'with meta:\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
+        With(lineno=1, column=1, ctx='meta', text='x = (\n  1, 2,\n)'),
+        ]),
+    'with table:\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
+        With(lineno=1, column=1, ctx='table', text='x = (\n  1, 2,\n)'),
+        ]),
 }
 
 

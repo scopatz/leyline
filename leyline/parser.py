@@ -166,6 +166,28 @@ class Parser(object):
         text = dedent(text.strip('\n'))
         p[0] = With(lineno=p1.lineno, column=p1.column, text=text)
 
+    def p_with_name(self, p):
+        """withblock : with_tok TEXT COLON indent_tok nodedent dedent_tok"""
+        p1 = p[1]
+        ctx = p[2].strip() # maybe have a stronger enforcement here
+        text = self.leyline_doc[p[4].lexpos:p[6].lexpos]
+        text = dedent(text.strip('\n'))
+        p[0] = With(lineno=p1.lineno, column=p1.column, text=text, ctx=ctx)
+
+    def p_with_reserved(self, p):
+        """withblock : with_tok TEXT REND COLON indent_tok nodedent dedent_tok
+                     | with_tok TEXT WITH COLON indent_tok nodedent dedent_tok
+                     | with_tok TEXT TABLE COLON indent_tok nodedent dedent_tok
+                     | with_tok TEXT RESERVED COLON indent_tok nodedent dedent_tok
+        """
+        p1 = p[1]
+        if p[2] != ' ':
+            assert False
+        ctx = p[3]
+        text = self.leyline_doc[p[5].lexpos:p[7].lexpos]
+        text = dedent(text.strip('\n'))
+        p[0] = With(lineno=p1.lineno, column=p1.column, text=text, ctx=ctx)
+
     #
     # Define text blocks
     #
