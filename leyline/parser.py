@@ -34,11 +34,17 @@ class Parser(object):
             The directory to place generated tables within. Defaults to the root
             xonsh dir.
         """
+        # some prelim setup
         self.lexer = lexer = Lexer()
         self.tokens = lexer.tokens
         self._lines = None
         self.leyline_doc = None
 
+        tok_rules = ['text']
+        for rule in tok_rules:
+            self._tok_rule(rule)
+
+        # create yacc parser
         yacc_kwargs = dict(module=self,
                            debug=yacc_debug,
                            start='start_symbols',
@@ -50,6 +56,30 @@ class Parser(object):
             outputdir = os.path.dirname(os.path.dirname(__file__))
         yacc_kwargs['outputdir'] = outputdir
         self.parser = ply.yacc.yacc(**yacc_kwargs)
+
+    def _yacc_lookahead_token(self):
+        """Gets the next-to-last and last token seen by the lexer."""
+        return self.lexer.beforelast, self.lexer.last
+
+    def _tok_rule(self, rulename):
+        """For a rule name, creates a rule that returns the corresponding token.
+        '_tok' is appended to the rule name.
+        """
+
+        def tokfunc(self, p):
+            s, t = self._yacc_lookahead_token()
+            uprule = rulename.upper()
+            if s is not None and s.type == uprule:
+                p[0] = s
+            elif t is not None and t.type == uprule:
+                p[0] = t
+            else:
+                raise TypeError('token for {0!r} not found.'.format(rulename))
+
+        tokfunc.__doc__ = '{0}_tok : {1}'.format(rulename, rulename.upper())
+        tokfunc.__name__ = 'p_' + rulename + '_tok'
+        setattr(self.__class__, tokfunc.__name__, tokfunc)
+
 
     def reset(self):
         """Resets for clean parsing."""
@@ -124,12 +154,14 @@ class Parser(object):
     #
 
     def p_textblock_entry(self, p):
-        """textblock_entry : TEXT"""
-        p[0] = Text(text=p[1])
+        """textblock_entry : text_tok"""
+        t = p[1]
+        p[0] = Text(text=t.value, lineno=t.lineno, column=t.column)
 
     def p_textblock_single(self, p):
         """textblock : textblock_entry"""
-        p[0] = TextBlock(body=[p[1]])
+        p1 = p[1]
+        p[0] = TextBlock(body=[p1], lineno=p1.lineno, column=p1.column)
 
     def p_textblock_append(self, p):
         """textblock : textblock textblock_entry"""

@@ -194,7 +194,7 @@ class Lexer(object):
         return self.lexer.input(s)
 
     def reset(self):
-        self.inp = None
+        self.inp = self.last = self.beforelast = None
         self.queue = deque()
         self.indents = ['']
 
@@ -203,7 +203,7 @@ class Lexer(object):
         self.reset()
         self.lexer = ply.lex.lex(module=self, reflags=re.DOTALL, **kwargs)
 
-    def token(self):
+    def _next_token(self):
         """Obtain the next token"""
         # consume current queu
         if self.queue:
@@ -216,6 +216,12 @@ class Lexer(object):
                 t.value += next.value
                 next = self.lexer.token()
             self.queue.append(next)
+        return t
+
+    def token(self):
+        """Retrieves the next token."""
+        self.beforelast = self.last
+        t = self.last = self._next_token()
         return t
 
     def __iter__(self):

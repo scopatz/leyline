@@ -10,7 +10,8 @@ PARSER = Parser(lexer_optimize=False, yacc_optimize=False, yacc_debug=True)
 PARSE_CASES = {
     '': Document(lineno=1, column=1),
     'hello world': Document(lineno=1, column=1, body=[
-        TextBlock(body=[Text(text='hello world')])
+        TextBlock(lineno=1, column=1, body=[
+            Text(lineno=1, column=1, text='hello world')])
         ]),
 }
 
