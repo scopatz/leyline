@@ -1,7 +1,7 @@
 """Tests for leyline parser"""
 from leyline.parser import Parser
 from leyline.ast import (Document, Text, TextBlock, Bold, Italics,
-    Underline, Strikethrough, With)
+    Underline, Strikethrough, With, RenderFor)
 
 import pytest
 
@@ -37,6 +37,35 @@ PARSE_CASES = {
                 Underline(lineno=1, column=9, body=[
                     Text(lineno=1, column=11, text='world')])
                 ])
+            ])
+        ]),
+    'rend x:\n  some text\n': Document(lineno=1, column=1, body=[
+        RenderFor(lineno=1, column=1, targets=set(['x']), body=[
+            TextBlock(lineno=2, column=3, body=[
+                Text(lineno=2, column=3, text='some text')
+                ])
+            ])
+        ]),
+    'rend x y:\n  some text\n': Document(lineno=1, column=1, body=[
+        RenderFor(lineno=1, column=1, targets=set(['x', 'y']), body=[
+            TextBlock(lineno=2, column=3, body=[
+                Text(lineno=2, column=3, text='some text')
+                ])
+            ])
+        ]),
+    'rend x y:\n  some text\n  rend x:\n    only in x\n  in x & y\n': Document(lineno=1, column=1, body=[
+        RenderFor(lineno=1, column=1, targets=set(['x', 'y']), body=[
+            TextBlock(lineno=2, column=3, body=[
+                Text(lineno=2, column=3, text='some text\n  '),
+                ]),
+            RenderFor(lineno=3, column=3, targets=set(['x']), body=[
+                TextBlock(lineno=4, column=5, body=[
+                    Text(lineno=4, column=5, text='only in x'),
+                    ]),
+                ]),
+            TextBlock(lineno=5, column=3, body=[
+                Text(lineno=5, column=3, text='in x & y'),
+                ]),
             ])
         ]),
     'with:\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[

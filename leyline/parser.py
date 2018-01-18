@@ -6,7 +6,7 @@ import ply.yacc
 
 from leyline.lexer import Lexer
 from leyline.ast import (Document, Text, TextBlock, Comment, CodeBlock, Bold,
-    Italics, Underline, Strikethrough, With)
+    Italics, Underline, Strikethrough, With, RenderFor)
 
 
 class Parser(object):
@@ -45,7 +45,7 @@ class Parser(object):
         self._attach_nodedent_base_rules()
 
         tok_rules = ['text', 'doubledash', 'doublestar', 'doubletilde',
-                     'doubleunder', 'with', 'indent', 'dedent']
+                     'doubleunder', 'rend', 'with', 'indent', 'dedent']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -172,6 +172,7 @@ class Parser(object):
     def p_block(self, p):
         """block : textblock
                  | withblock
+                 | rendblock
         """
         p[0] = p[1]
 
@@ -184,6 +185,21 @@ class Parser(object):
         p1 = p[1]
         p1.append(p[2])
         p[0] = p1
+
+    #
+    # rend blocks
+    #
+
+    def p_rend(self, p):
+        """rendblock : rend_tok text_tok COLON INDENT blocks DEDENT"""
+        p1 = p[1]
+        p2 = p[2]
+        targs = p2.value
+        if not targs.startswith(' '):
+            self._parse_error('Invalid render targets {0!r}'.format(targs),
+                              lineno=p2.lineno, column=p2.column)
+        targs = set(targs.split())
+        p[0] = RenderFor(targets=targs, body=p[5], lineno=p1.lineno, column=p1.column)
 
     #
     # with blocks
