@@ -90,6 +90,7 @@ class Parser(object):
         self.lexer.reset()
         self._lines = None
         self.leyline_doc = None
+        self.filename = None
 
     def parse(self, s, filename='<document>', debug_level=0):
         """Returns an abstract syntax tree of the leyline document.
@@ -109,7 +110,7 @@ class Parser(object):
         """
         self.reset()
         self.leyline_doc = s
-        self.lexer.fname = filename
+        self.filename = filename
         tree = self.parser.parse(input=s, lexer=self.lexer, debug=debug_level)
         return tree
 
@@ -118,6 +119,35 @@ class Parser(object):
         if self._lines is None and self.leyline_doc is not None:
             self._lines = self.leyline_doc.splitlines(keepends=True)
         return self._lines
+
+    def _parse_error(self, msg, lineno=None, column=None):
+        if lineno is None or column is None:
+            before, last = self._yacc_lookahead_token()
+            tok = before if before is not None else last
+            if tok is not None:
+                lineno = tok.lineno
+                column = tok.column
+        if self.leyline_doc is None or lineno is None or column is None:
+            err_line_pointer = ''
+        else:
+            col = column - 1
+            lines = self.lines
+            if lineno == 0:
+                lineno = len(lines)
+            i = lineno - 1
+            if 0 <= i < len(lines):
+                err_line = lines[i].rstrip()
+                err_line_pointer = '\n{}\n{: >{}}'.format(err_line, '^', col)
+            else:
+                err_line_pointer = ''
+        loc = self.filename
+        if lineno is not None:
+            loc += ':' + str(lineno)
+        if column is not None:
+            loc += ':' + str(column)
+        err = SyntaxError('{0}: {1}{2}'.format(loc, msg, err_line_pointer))
+        err.lineno = loc
+        raise err
 
     #
     # Parsing rules
@@ -281,3 +311,14 @@ class Parser(object):
                            | any_dedent_toks any_dedent_tok
         """
         pass
+
+    #
+    # special psuedo-rules
+    #
+
+    def p_error(self, p):
+        if p is None:
+            self._parse_error('no further code')
+        else:
+            msg = 'code: {0}'.format(p.value),
+            self._parse_error(msg, lineno=p.lineno, column=p.column)
