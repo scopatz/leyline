@@ -9,8 +9,8 @@ import ply.lex
 class Lexer(object):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.build()
+        super().__init__(*args)
+        self.build(**kwargs)
 
     # lexing happens in order of precedence in the file.
 

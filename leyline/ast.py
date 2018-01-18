@@ -1,6 +1,9 @@
 """Leyline AST nodes and tools."""
+import re
 import pprint
 import textwrap
+
+RE_NEWLINE_INDENT = re.compile('\n+[ \t]*')
 
 
 class Node:
@@ -8,27 +11,48 @@ class Node:
     attrs = ()
     lineno = 0
     column = 0
+    extra = None
 
     def __init__(self, *, lineno=0, column=0, **kwargs):
         self.lineno = lineno
         self.column = column
         for attr, default in self.attrs:
-            value = kwargs.get(attr, NotImplemented)
+            value = kwargs.pop(attr, NotImplemented)
             if value is NotImplemented:
                 value = default() if callable(default) else default
             setattr(self, attr, value)
+        if kwargs:
+            self.extra = kwargs
 
     def __str__(self):
         return PrettyFormatter(self).visit()
 
     def __repr__(self):
-        return str(self).replace('\n', '')
+        return RE_NEWLINE_INDENT.sub('', str(self))
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        if self.lineno != other.lineno:
+            return False
+        if self.column != other.column:
+            return False
+        for attr, _ in self.attrs:
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
 
 
 class Document(Node):
     """Top-level document that contains a list of children"""
 
     attrs = (('body', list),)
+
+
+class Text(Node):
+    """Represents unformatted text."""
+
+    attrs = (('text', ''),)
 
 
 class Comment(Node):
@@ -183,10 +207,10 @@ class PrettyFormatter(Visitor):
             a = getattr(node, aname)
             t.append(self.visit(a) if isinstance(a, Node) else pprint.pformat(a))
         t = ['{0}={1}'.format(n, x) for (n, _), x in zip(node.attrs, t)]
-        if node.lineno:
-            t.append('lineno={0}'.format(node.lineno))
-        if node.column:
-            t.append('column={0}'.format(node.column))
+        t.append('lineno={0}'.format(node.lineno))
+        t.append('column={0}'.format(node.column))
+        if node.extra:
+            t.append('**' + repr(node.extra))
         s += textwrap.indent(',\n'.join(t), self.indent)
         self.level -= 1
         s += '\n)'
