@@ -99,21 +99,33 @@ class Lexer(object):
         self._set_column(t)
         return t
 
-    def t_COLON(self, t):
-        r':'
-        self._set_column(t)
-        return t
-
     reserved = {
         'rend': 'REND',
         'with': 'WITH',
         'table': 'TABLE',
         }
 
-    @ply.lex.TOKEN(r'(' + '|'.join(sorted(reserved.keys())) + ')')
-    def t_RESERVED(self, t):
+    #@ply.lex.TOKEN(r'(' + '|'.join(sorted(reserved.keys())) + ')')
+    #def t_RESERVED(self, t):
+    #    self._set_column(t)
+    #    t.type = self.reserved.get(t.value, 'RESERVED')
+    #    return t
+
+    def t_REND(self, t):
+        r'rend(|(?: [A-Za-z_][A-Za-z0-9_]*)+)::'
         self._set_column(t)
-        t.type = self.reserved.get(t.value, 'RESERVED')
+        t.value = set(t.value[4:-2].split())
+        return t
+
+    def t_WITH(self, t):
+        r'with(| [A-Za-z_][A-Za-z0-9_]*)::'
+        self._set_column(t)
+        t.value = t.value[4:-2].strip()
+        return t
+
+    def t_TABLE(self, t):
+        r'table::'
+        self._set_column(t)
         return t
 
     def t_INDENT(self, t):
@@ -237,7 +249,7 @@ class Lexer(object):
     def tokens(self):
         if self._tokens is None:
             toks = [t[2:] for t in dir(self) if t.startswith('t_') and t[2:].upper() == t[2:]]
-            toks.extend(self.reserved.values())
+            #toks.extend(self.reserved.values())
             toks.append('DEDENT')
             self._tokens = tuple(toks)
         return self._tokens

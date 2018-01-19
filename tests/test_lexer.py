@@ -50,7 +50,9 @@ def assert_tokens_equal(x, y):
     if len(x) != len(y):
         msg = 'The tokens sequences have different lengths: {0!r} != {1!r}\n'
         msg += '# x\n{2}\n\n# y\n{3}'
-        pytest.fail(msg.format(len(x), len(y), pformat(x), pformat(y)))
+        xstr = '[' + ',\n '.join(map(tokstr, x)) + ']'
+        ystr = '[' + ',\n '.join(map(tokstr, y)) + ']'
+        pytest.fail(msg.format(len(x), len(y), xstr, ystr))
     diffs = [(i, a, b) for i, (a, b) in enumerate(zip(x, y)) if not tokens_equal(a, b)]
     if len(diffs) > 0:
         msg = ['The token sequences differ: ']
@@ -81,7 +83,6 @@ def check_tokens(inp, exp):
 
 TOKEN_CASES = {
     # code: [token type, str, line, col, lexpos]
-    ':': ['COLON', ':', 1, 1, 0],
     '**': ['DOUBLESTAR', '**', 1, 1, 0],
     '--': ['DOUBLEDASH', '--', 1, 1, 0],
     '~~': ['DOUBLETILDE', '~~', 1, 1, 0],
@@ -91,9 +92,10 @@ TOKEN_CASES = {
     '{%': ['LBRACEPERCENT', '{%', 1, 1, 0],
     '%}': ['PERCENTRBRACE', '%}', 1, 1, 0],
     '{%}': ['LBRACEPERCENTRBRACE', '{%}', 1, 1, 0],
-    'rend': ['REND', 'rend', 1, 1, 0],
-    'with': ['WITH', 'with', 1, 1, 0],
-    'table': ['TABLE', 'table', 1, 1, 0],
+    'rend x y::': ['REND', set(['x', 'y']), 1, 1, 0],
+    'with::': ['WITH', '', 1, 1, 0],
+    'table::': ['TABLE', 'table::', 1, 1, 0],
+    'Please stay with me': ['TEXT', 'Please stay with me', 1, 1, 0],
     'dash-ing': ['TEXT', 'dash-ing', 1, 1, 0],
     '{braced}': ['TEXT', '{braced}', 1, 1, 0],
     'wakka jawaka': ['TEXT', 'wakka jawaka', 1, 1, 0],
@@ -116,12 +118,11 @@ def test_token(inp, exp):
 
 TOKENS_CASES = {
     # code: [token type, str, line, col, lexpos]
-    'with:\n  x = 10\n  y = 42': [
-        ['WITH', 'with', 1, 1, 0],
-        ['COLON', ':', 1, 5, 4],
-        ['INDENT', '  ', 2, 1, 5],
-        ['TEXT', 'x = 10\n  y = 42', 2, 3, 8],
-        ['DEDENT', '  ', 3, 1, 23],
+    'with::\n  x = 10\n  y = 42': [
+        ['WITH', '', 1, 1, 0],
+        ['INDENT', '  ', 2, 1, 6],
+        ['TEXT', 'x = 10\n  y = 42', 2, 3, 9],
+        ['DEDENT', '  ', 3, 1, 24],
         ],
     '**__Bold And\nUnderline!__**': [
         ['DOUBLESTAR', '**', 1, 1, 0],
@@ -129,11 +130,6 @@ TOKENS_CASES = {
         ['TEXT', 'Bold And\nUnderline!', 1, 5, 4],
         ['DOUBLEUNDER', '__', 2, 11, 23],
         ['DOUBLESTAR', '**', 2, 13, 25],
-        ],
-    'Please stay with me': [
-        ['TEXT', 'Please stay ', 1, 1, 0],
-        ['WITH', 'with', 1, 13, 12],
-        ['TEXT', ' me', 1, 17, 16],
         ],
     'text and \n```rst\ncode block\n```\nand more text': [
         ['TEXT', 'text and \n', 1, 1, 0],

@@ -191,48 +191,21 @@ class Parser(object):
     #
 
     def p_rend(self, p):
-        """rendblock : rend_tok text_tok COLON INDENT blocks DEDENT"""
+        """rendblock : rend_tok INDENT blocks DEDENT"""
         p1 = p[1]
-        p2 = p[2]
-        targs = p2.value
-        if not targs.startswith(' '):
-            self._parse_error('Invalid render targets {0!r}'.format(targs),
-                              lineno=p2.lineno, column=p2.column)
-        targs = set(targs.split())
-        p[0] = RenderFor(targets=targs, body=p[5], lineno=p1.lineno, column=p1.column)
+        targs = p1.value
+        p[0] = RenderFor(targets=targs, body=p[3], lineno=p1.lineno, column=p1.column)
 
     #
     # with blocks
     #
 
-    def p_with_null(self, p):
-        """withblock : with_tok COLON indent_tok nodedent dedent_tok"""
+    def p_with(self, p):
+        """withblock : with_tok indent_tok nodedent dedent_tok"""
         p1 = p[1]
-        text = self.leyline_doc[p[3].lexpos:p[5].lexpos]
+        text = self.leyline_doc[p[2].lexpos:p[4].lexpos]
         text = dedent(text.strip('\n'))
-        p[0] = With(lineno=p1.lineno, column=p1.column, text=text)
-
-    def p_with_name(self, p):
-        """withblock : with_tok TEXT COLON indent_tok nodedent dedent_tok"""
-        p1 = p[1]
-        ctx = p[2].strip() # maybe have a stronger enforcement here
-        text = self.leyline_doc[p[4].lexpos:p[6].lexpos]
-        text = dedent(text.strip('\n'))
-        p[0] = With(lineno=p1.lineno, column=p1.column, text=text, ctx=ctx)
-
-    def p_with_reserved(self, p):
-        """withblock : with_tok TEXT REND COLON indent_tok nodedent dedent_tok
-                     | with_tok TEXT WITH COLON indent_tok nodedent dedent_tok
-                     | with_tok TEXT TABLE COLON indent_tok nodedent dedent_tok
-                     | with_tok TEXT RESERVED COLON indent_tok nodedent dedent_tok
-        """
-        p1 = p[1]
-        if p[2] != ' ':
-            assert False
-        ctx = p[3]
-        text = self.leyline_doc[p[5].lexpos:p[7].lexpos]
-        text = dedent(text.strip('\n'))
-        p[0] = With(lineno=p1.lineno, column=p1.column, text=text, ctx=ctx)
+        p[0] = With(lineno=p1.lineno, column=p1.column, text=text, ctx=p1.value)
 
     #
     # Define text blocks

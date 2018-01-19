@@ -39,21 +39,21 @@ PARSE_CASES = {
                 ])
             ])
         ]),
-    'rend x:\n  some text\n': Document(lineno=1, column=1, body=[
+    'rend x::\n  some text\n': Document(lineno=1, column=1, body=[
         RenderFor(lineno=1, column=1, targets=set(['x']), body=[
             TextBlock(lineno=2, column=3, body=[
                 Text(lineno=2, column=3, text='some text')
                 ])
             ])
         ]),
-    'rend x y:\n  some text\n': Document(lineno=1, column=1, body=[
+    'rend x y::\n  some text\n': Document(lineno=1, column=1, body=[
         RenderFor(lineno=1, column=1, targets=set(['x', 'y']), body=[
             TextBlock(lineno=2, column=3, body=[
                 Text(lineno=2, column=3, text='some text')
                 ])
             ])
         ]),
-    'rend x y:\n  some text\n  rend x:\n    only in x\n  in x & y\n': Document(lineno=1, column=1, body=[
+    'rend x y::\n  some text\n  rend x::\n    only in x\n  in x & y\n': Document(lineno=1, column=1, body=[
         RenderFor(lineno=1, column=1, targets=set(['x', 'y']), body=[
             TextBlock(lineno=2, column=3, body=[
                 Text(lineno=2, column=3, text='some text\n  '),
@@ -68,13 +68,13 @@ PARSE_CASES = {
                 ]),
             ])
         ]),
-    'with:\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
+    'with::\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
         With(lineno=1, column=1, ctx='', text='x = (\n  1, 2,\n)'),
         ]),
-    'with meta:\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
+    'with meta::\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
         With(lineno=1, column=1, ctx='meta', text='x = (\n  1, 2,\n)'),
         ]),
-    'with table:\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
+    'with table::\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
         With(lineno=1, column=1, ctx='table', text='x = (\n  1, 2,\n)'),
         ]),
 }
