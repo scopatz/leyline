@@ -6,6 +6,9 @@ from collections import deque
 import ply.lex
 
 
+RE_SPACES = re.compile('( +)')
+
+
 class Lexer(object):
 
     def __init__(self, *args, **kwargs):
@@ -106,15 +109,28 @@ class Lexer(object):
         }
 
     def t_REND(self, t):
-        r'rend(|(?: [A-Za-z_][A-Za-z0-9_]*)+)::'
+        r'rend(?: +[A-Za-z_][A-Za-z0-9_]*)+::'
         self._set_column(t)
-        t.value = set(t.value[4:-2].split())
+        subtoks = RE_SPACES.split(t.value[4:-2])[1:]
+        for space in subtoks[::2]:
+            if space != ' ':
+                self._lexer_error(t, 'render targets must be separated by '
+                                     'a single space " ".')
+        t.value = set(subtoks[1::2])
         return t
 
     def t_WITH(self, t):
-        r'with(| [A-Za-z_][A-Za-z0-9_]*)::'
+        r'with(| +[A-Za-z_][A-Za-z0-9_]*)::'
         self._set_column(t)
-        t.value = t.value[4:-2].strip()
+        ctx = t.value[4:-2]
+        if not ctx:
+            t.value = ctx
+            return t
+        subtoks = RE_SPACES.split(ctx)[1:]
+        if subtoks[0] != ' ':
+            self._lexer_error(t, 'with context must be separated by '
+                                 'a single space "with ctx::".')
+        t.value = subtoks[1]
         return t
 
     def t_TABLE(self, t):

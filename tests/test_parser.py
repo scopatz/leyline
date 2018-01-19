@@ -84,3 +84,16 @@ PARSE_CASES = {
 def test_parse(doc, exp):
     obs = PARSER.parse(doc, debug_level=1)
     assert exp == obs
+
+
+BAD_PARSE_CASES = [
+    "with  two_spaces::\n  yes",
+    "rend t0   t1::\n  no",
+    "rend   t0 t1::\n  no",
+]
+
+
+@pytest.mark.parametrize('doc', BAD_PARSE_CASES)
+def test_bad_parse(doc):
+    with pytest.raises(SyntaxError):
+        obs = PARSER.parse(doc)
