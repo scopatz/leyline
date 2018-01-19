@@ -143,10 +143,21 @@ TOKENS_CASES = {
         ],
     '\n* item 1\n- item 2': [
         ['TEXT', '\n', 1, 1, 0],
-        ['LISTITEM', '*', 2, 1, 1],
+        ['LISTBULLET', '*', 2, 1, 1],
         ['TEXT', 'item 1\n', 2, 3, 3],
-        ['LISTITEM', '-', 3, 1, 10],
+        ['LISTBULLET', '-', 3, 1, 10],
         ['TEXT', 'item 2', 3, 3, 12],
+        ],
+    'hello\n  1. yup\n  2. nope\n  3. maybe': [
+        ['TEXT', 'hello', 1, 1, 0],
+        ['INDENT', '  ', 2, 1, 5],
+        ['LISTBULLET', 1, 2, 3, 8],
+        ['TEXT', 'yup\n  ', 2, 6, 11],
+        ['LISTBULLET', 2, 3, 3, 17],
+        ['TEXT', 'nope\n  ', 3, 6, 20],
+        ['LISTBULLET', 3, 4, 3, 27],
+        ['TEXT', 'maybe', 4, 6, 30],
+        ['DEDENT', '  ', 4, 1, 35],
         ],
 }
 
