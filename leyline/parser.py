@@ -110,7 +110,7 @@ class Parser(object):
         """
         self.reset()
         self.leyline_doc = s
-        self.filename = filename
+        self.filename = self.lexer.filename = filename
         tree = self.parser.parse(input=s, lexer=self.lexer, debug=debug_level)
         return tree
 

@@ -105,12 +105,6 @@ class Lexer(object):
         'table': 'TABLE',
         }
 
-    #@ply.lex.TOKEN(r'(' + '|'.join(sorted(reserved.keys())) + ')')
-    #def t_RESERVED(self, t):
-    #    self._set_column(t)
-    #    t.type = self.reserved.get(t.value, 'RESERVED')
-    #    return t
-
     def t_REND(self, t):
         r'rend(|(?: [A-Za-z_][A-Za-z0-9_]*)+)::'
         self._set_column(t)
@@ -176,12 +170,9 @@ class Lexer(object):
         t.lexer.lineno += t.value.count('\n')
         return t
 
-    # Error handling rule
     def t_error(self, t):
-        print("Illegal character '%s'" % t.value[0])
-        t.lexer.skip(1)
-        #t.type = 'TEXT'
-        #return t
+        msg = "Illegal token {0!r}".format(t.value[0])
+        self._lexer_error(t, msg)
 
     def t_eof(self, t):
         """Handle end of file conditions"""
@@ -207,7 +198,7 @@ class Lexer(object):
 
     def reset(self):
         self.lexer.lineno = 1
-        self.inp = self.last = self.beforelast = None
+        self.inp = self.last = self.beforelast = self.filename = None
         self.queue = deque()
         self.indents = ['']
 
@@ -249,7 +240,6 @@ class Lexer(object):
     def tokens(self):
         if self._tokens is None:
             toks = [t[2:] for t in dir(self) if t.startswith('t_') and t[2:].upper() == t[2:]]
-            #toks.extend(self.reserved.values())
             toks.append('DEDENT')
             self._tokens = tuple(toks)
         return self._tokens
@@ -263,3 +253,13 @@ class Lexer(object):
         else:
             col = p - q
         t.column = col
+
+    def _lexer_error(self, t, msg):
+        """Raises a syntax error coming from the lexer"""
+        err_line = self.inp[:t.lexpos].rpartition('\n')[-1].partition('\n')[0].rstrip()
+        err_line_pointer = '\n{}\n{: >{}}'.format(err_line, '^', t.column - 1)
+        loc = '<document>' if self.filename is None else self.filename
+        loc += ':' + str(t.lineno) + ':' + str(t.column)
+        err = SyntaxError('{0}: {1}{2}'.format(loc, msg, err_line_pointer))
+        err.lineno = loc
+        raise err

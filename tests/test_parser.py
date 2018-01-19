@@ -82,5 +82,5 @@ PARSE_CASES = {
 
 @pytest.mark.parametrize('doc, exp', PARSE_CASES.items())
 def test_parse(doc, exp):
-    obs = PARSER.parse(doc)
+    obs = PARSER.parse(doc, debug_level=1)
     assert exp == obs
