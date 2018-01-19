@@ -6,7 +6,7 @@ import ply.yacc
 
 from leyline.lexer import Lexer
 from leyline.ast import (Document, Text, TextBlock, Comment, CodeBlock, Bold,
-    Italics, Underline, Strikethrough, With)
+    Italics, Underline, Strikethrough, With, RenderFor)
 
 
 class Parser(object):
@@ -45,7 +45,7 @@ class Parser(object):
         self._attach_nodedent_base_rules()
 
         tok_rules = ['text', 'doubledash', 'doublestar', 'doubletilde',
-                     'doubleunder', 'with', 'indent', 'dedent']
+                     'doubleunder', 'rend', 'with', 'indent', 'dedent']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -90,6 +90,7 @@ class Parser(object):
         self.lexer.reset()
         self._lines = None
         self.leyline_doc = None
+        self.filename = None
 
     def parse(self, s, filename='<document>', debug_level=0):
         """Returns an abstract syntax tree of the leyline document.
@@ -109,7 +110,7 @@ class Parser(object):
         """
         self.reset()
         self.leyline_doc = s
-        self.lexer.fname = filename
+        self.filename = filename
         tree = self.parser.parse(input=s, lexer=self.lexer, debug=debug_level)
         return tree
 
@@ -118,6 +119,35 @@ class Parser(object):
         if self._lines is None and self.leyline_doc is not None:
             self._lines = self.leyline_doc.splitlines(keepends=True)
         return self._lines
+
+    def _parse_error(self, msg, lineno=None, column=None):
+        if lineno is None or column is None:
+            before, last = self._yacc_lookahead_token()
+            tok = before if before is not None else last
+            if tok is not None:
+                lineno = tok.lineno
+                column = tok.column
+        if self.leyline_doc is None or lineno is None or column is None:
+            err_line_pointer = ''
+        else:
+            col = column - 1
+            lines = self.lines
+            if lineno == 0:
+                lineno = len(lines)
+            i = lineno - 1
+            if 0 <= i < len(lines):
+                err_line = lines[i].rstrip()
+                err_line_pointer = '\n{}\n{: >{}}'.format(err_line, '^', col)
+            else:
+                err_line_pointer = ''
+        loc = self.filename
+        if lineno is not None:
+            loc += ':' + str(lineno)
+        if column is not None:
+            loc += ':' + str(column)
+        err = SyntaxError('{0}: {1}{2}'.format(loc, msg, err_line_pointer))
+        err.lineno = loc
+        raise err
 
     #
     # Parsing rules
@@ -142,6 +172,7 @@ class Parser(object):
     def p_block(self, p):
         """block : textblock
                  | withblock
+                 | rendblock
         """
         p[0] = p[1]
 
@@ -154,6 +185,21 @@ class Parser(object):
         p1 = p[1]
         p1.append(p[2])
         p[0] = p1
+
+    #
+    # rend blocks
+    #
+
+    def p_rend(self, p):
+        """rendblock : rend_tok text_tok COLON INDENT blocks DEDENT"""
+        p1 = p[1]
+        p2 = p[2]
+        targs = p2.value
+        if not targs.startswith(' '):
+            self._parse_error('Invalid render targets {0!r}'.format(targs),
+                              lineno=p2.lineno, column=p2.column)
+        targs = set(targs.split())
+        p[0] = RenderFor(targets=targs, body=p[5], lineno=p1.lineno, column=p1.column)
 
     #
     # with blocks
@@ -303,3 +349,14 @@ class Parser(object):
                            | any_dedent_toks any_dedent_tok
         """
         pass
+
+    #
+    # special psuedo-rules
+    #
+
+    def p_error(self, p):
+        if p is None:
+            self._parse_error('no further code')
+        else:
+            msg = 'code: {0}'.format(p.value),
+            self._parse_error(msg, lineno=p.lineno, column=p.column)
