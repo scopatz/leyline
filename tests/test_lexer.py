@@ -141,6 +141,13 @@ TOKENS_CASES = {
         ['INLINEMATH', 'math', 1, 6, 5],
         ['TEXT', ' text', 1, 12, 11],
         ],
+    '\n* item 1\n- item 2': [
+        ['TEXT', '\n', 1, 1, 0],
+        ['LISTITEM', '*', 2, 1, 1],
+        ['TEXT', 'item 1\n', 2, 3, 3],
+        ['LISTITEM', '-', 3, 1, 10],
+        ['TEXT', 'item 2', 3, 3, 12],
+        ],
 }
 
 @pytest.mark.parametrize('inp, exp', sorted(TOKENS_CASES.items()))

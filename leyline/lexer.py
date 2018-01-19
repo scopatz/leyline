@@ -6,7 +6,9 @@ from collections import deque
 import ply.lex
 
 
+RE_INDENT = re.compile('\n+([ \t]*)[^ \n\t]*')
 RE_SPACES = re.compile('( +)')
+RE_LISTITEM = re.compile('([-*]|\d+\.) ')
 
 
 class Lexer(object):
@@ -138,16 +140,30 @@ class Lexer(object):
         self._set_column(t)
         return t
 
+    def _append_listitem(self, item, t):
+        if not item:
+            return
+        li = ply.lex.LexToken()
+        li.type = 'LISTITEM'
+        li.value = item
+        li.lineno = t.lexer.lineno
+        li.lexpos = t.lexpos + len(t.value)
+        li.column = len(t.value.lstrip('\n')) + 1
+        self.queue.append(li)
+
     def t_INDENT(self, t):
-        r'\n+[ \t]*'
+        r'\n+[ \t]*(([-*]|\d+\.) )?'
         # track line numbers
         t.lexer.lineno += t.value.count('\n')
-        i = t.value.lstrip('\n')
+        n = len(RE_LISTITEM.split(t.value)[0])
+        t.value, listitem = t.value[:n], t.value[n:].strip()
+        i = RE_INDENT.match(t.value).group(1)
         last = self.indents[-1]
         if i == last:
             # return if this basically text
             self._set_column(t)
             t.type = 'TEXT'
+            self._append_listitem(listitem, t)
             return t
         # now we know we have an indent or a dedent
         t.lineno = t.lexer.lineno
@@ -169,7 +185,8 @@ class Lexer(object):
                 del self.indents[-1]
                 last = self.indents[-1]
         else:
-            raise SyntaxError("Indentation level doesn't match " + str(t))
+            self._lexer_error(t, "Indentation level doesn't match")
+        self._append_listitem(listitem, t)
         return t
 
     text_breaks = '\n#`${}%-*~_:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
@@ -225,17 +242,17 @@ class Lexer(object):
 
     def _next_token(self):
         """Obtain the next token"""
-        # consume current queu
+        # consume current queue
         if self.queue:
             return self.queue.popleft()
         # merge text tokens
         t = self.lexer.token()
         if t is not None and t.type == 'TEXT':
-            next = self.lexer.token()
+            next = self.queue.popleft() if self.queue else self.lexer.token()
             while next is not None and next.type == 'TEXT':
                 t.value += next.value
-                next = self.lexer.token()
-            self.queue.append(next)
+                next = self.queue.popleft() if self.queue else self.lexer.token()
+            self.queue.appendleft(next)
         return t
 
     def token(self):
@@ -256,7 +273,7 @@ class Lexer(object):
     def tokens(self):
         if self._tokens is None:
             toks = [t[2:] for t in dir(self) if t.startswith('t_') and t[2:].upper() == t[2:]]
-            toks.append('DEDENT')
+            toks.extend(['DEDENT', 'LISTITEM'])
             self._tokens = tuple(toks)
         return self._tokens
 
