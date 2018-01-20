@@ -131,30 +131,33 @@ PARSE_CASES = {
         ]),
     # double list
     '- * a\n  * b\n  * c\n- * x\n  * y\n  * z': Document(lineno=1, column=1, body=[
-        List(lineno=1, column=1, bullets='*', items=[
-            List(lineno=1, column=1, bullets='*', items=[
-                [TextBlock(lineno=1, column=3, body=[
-                    Text(lineno=1, column=3, text='a\n'),
+        List(lineno=1, column=1, bullets='-', items=[
+            [
+            List(lineno=1, column=3, bullets='*', items=[
+                [TextBlock(lineno=1, column=5, body=[
+                    Text(lineno=1, column=5, text='a\n  '),
                     ])],
-                [TextBlock(lineno=2, column=3, body=[
-                    Text(lineno=2, column=3, text='b\n'),
+                [TextBlock(lineno=2, column=5, body=[
+                    Text(lineno=2, column=5, text='b\n  '),
                     ])],
-                [TextBlock(lineno=3, column=3, body=[
-                    Text(lineno=3, column=3, text='c'),
+                [TextBlock(lineno=3, column=5, body=[
+                    Text(lineno=3, column=5, text='c'),
                    ])],
                 ]),
-            ]),
-            List(lineno=1, column=1, bullets='*', items=[
-                [TextBlock(lineno=1, column=3, body=[
-                    Text(lineno=1, column=3, text='x\n'),
+            ],
+            [
+            List(lineno=4, column=3, bullets='*', items=[
+                [TextBlock(lineno=4, column=5, body=[
+                    Text(lineno=4, column=5, text='x\n  '),
                     ])],
-                [TextBlock(lineno=2, column=3, body=[
-                    Text(lineno=2, column=3, text='y\n'),
+                [TextBlock(lineno=5, column=5, body=[
+                    Text(lineno=5, column=5, text='y\n  '),
                     ])],
-                [TextBlock(lineno=3, column=3, body=[
-                    Text(lineno=3, column=3, text='z'),
+                [TextBlock(lineno=6, column=5, body=[
+                    Text(lineno=6, column=5, text='z'),
                    ])],
                 ]),
+            ],
             ]),
         ]),
 }
