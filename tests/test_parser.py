@@ -90,6 +90,19 @@ PARSE_CASES = {
                 ])],
             ]),
         ]),
+    '1. x\n2. y\n3. z': Document(lineno=1, column=1, body=[
+        List(lineno=1, column=1, bullets=[1, 2, 3], items=[
+            [TextBlock(lineno=1, column=4, body=[
+                Text(lineno=1, column=4, text='x\n'),
+                ])],
+            [TextBlock(lineno=2, column=4, body=[
+                Text(lineno=2, column=4, text='y\n'),
+                ])],
+            [TextBlock(lineno=3, column=4, body=[
+                Text(lineno=3, column=4, text='z'),
+                ])],
+            ]),
+        ]),
 }
 
 

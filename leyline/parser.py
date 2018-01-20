@@ -6,7 +6,7 @@ import ply.yacc
 
 from leyline.lexer import Lexer
 from leyline.ast import (Document, Text, TextBlock, Comment, CodeBlock, Bold,
-    Italics, Underline, Strikethrough, With, RenderFor, List)
+    Italics, Underline, Strikethrough, With, RenderFor, List, Table)
 
 
 class Parser(object):
@@ -248,7 +248,7 @@ class Parser(object):
             b, i = item[0], item[1:]
             if b.value != firstbullet:
                 same_bullets = False
-            bullets.append(b)
+            bullets.append(b.value)
             items.append(i)
         if same_bullets:
             bullets = firstbullet
