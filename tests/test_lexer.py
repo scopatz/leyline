@@ -159,6 +159,16 @@ TOKENS_CASES = {
         ['TEXT', 'maybe', 4, 6, 30],
         ['DEDENT', '  ', 4, 1, 35],
         ],
+    # test nested list
+    '* - hello\n  - world': [
+        ['LISTBULLET', '*', 1, 1, 0],
+        ['INDENT', '  ', 1, 3, 2],
+        ['LISTBULLET', '-', 1, 3, 2],
+        ['TEXT', 'hello\n  ', 1, 5, 4],
+        ['LISTBULLET', '-', 2, 3, 12],
+        ['TEXT', 'world', 2, 5, 14],
+        ['DEDENT', '  ', 2, 1, 19],
+        ],
 }
 
 @pytest.mark.parametrize('inp, exp', sorted(TOKENS_CASES.items()))

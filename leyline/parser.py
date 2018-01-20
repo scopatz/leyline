@@ -1,12 +1,25 @@
 """Parser for leyline"""
 import os
+import itertools
 from textwrap import dedent
+from collections.abc import Sequence
 
 import ply.yacc
 
 from leyline.lexer import Lexer
-from leyline.ast import (Document, Text, TextBlock, Comment, CodeBlock, Bold,
+from leyline.ast import (Node, Document, Text, TextBlock, Comment, CodeBlock, Bold,
     Italics, Underline, Strikethrough, With, RenderFor, List, Table)
+
+
+def _lowest_column(x):
+    if isinstance(x, Node):
+        return x.column
+    elif isinstance(x, str):
+        return 'cannot find column of string ' + repr(x)
+    elif isinstance(x, Sequence):
+        return _lowest_column(x[0])
+    else:
+        return 'cannot find column of type ' + repr(type(x))
 
 
 class Parser(object):
@@ -46,7 +59,7 @@ class Parser(object):
 
         tok_rules = ['text', 'doubledash', 'doublestar', 'doubletilde',
                      'doubleunder', 'rend', 'with', 'indent', 'dedent',
-                     'listbullet']
+                     'listbullet', 'table']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -175,6 +188,7 @@ class Parser(object):
                  | withblock
                  | rendblock
                  | list
+                 | table
         """
         p[0] = p[1]
 
@@ -235,16 +249,14 @@ class Parser(object):
         p1.append(p[2])
         p[0] = p1
 
-    def p_list(self, p):
-        """list : listitems"""
-        p1 = p[1]
-        firstbullet = p1[0][0].value
-        lineno = p1[0][0].lineno
-        column = p1[0][0].column
+    def _bullets_and_items(self, listitems):
+        firstbullet = listitems[0][0].value
+        lineno = listitems[0][0].lineno
+        column = listitems[0][0].column
         bullets = []
         same_bullets = True
         items = []
-        for item in p1:
+        for item in listitems:
             b, i = item[0], item[1:]
             if b.value != firstbullet:
                 same_bullets = False
@@ -252,11 +264,29 @@ class Parser(object):
             items.append(i)
         if same_bullets:
             bullets = firstbullet
+        return lineno, column, bullets, items
+
+    def p_list(self, p):
+        """list : listitems"""
+        lineno, column, bullets, items = self._bullets_and_items(p[1])
         p[0] = List(lineno=lineno, column=column, bullets=bullets, items=items)
 
     #
     # table block
     #
+
+    def _item_to_row(self, item):
+        pass
+
+    def _items_to_rows(self, items):
+        return list(map(self._item_to_row, items))
+
+    def p_table(self, p):
+        """table : table_tok INDENT listitems DEDENT"""
+        p1 = p[1]
+        _, _, _, items = self._bullets_and_items(p[3])
+        rows = self._items_to_rows(items)
+        p[0] = Table(lineno=p1.lineno, column=p1.column, rows=rows)
 
     #
     # Define text blocks

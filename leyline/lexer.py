@@ -9,6 +9,7 @@ import ply.lex
 RE_INDENT = re.compile('\n+([ \t]*)[^ \n\t]*')
 RE_SPACES = re.compile('( +)')
 RE_LISTBULLET = re.compile('([-*]|\d+\.) ')
+RE_BULLETS = re.compile('([ \t]*)((?:[-*]|\d+\.) )+')
 
 
 class Lexer(object):
@@ -204,13 +205,36 @@ class Lexer(object):
         self._append_listbullet(bullet, t, nnl=nnl)
         return t
 
-    text_breaks = '\n#`${}%-*~_:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
+    text_breaks = '-\n#`${}%*~_:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
 
     @ply.lex.TOKEN('[' + text_breaks + ']')
     def t_UNBREAKTEXT(self, t):
         self._set_column(t)
         t.type = 'TEXT'
-        return t
+        post = self.inp[t.lexpos:]
+        m = RE_LISTBULLET.match(post)
+        if m is None:
+            # normal text, continue as planned
+            return t
+        # check if we are part of a nested list
+        _, _, pre = self.inp[:t.lexpos].rpartition('\n')
+        n = RE_BULLETS.match(pre)
+        if n is None:
+            # still normal text, continue as planned
+            return t
+        # we have a nested list!
+        indent = self.indents[-1] + ' ' * len(n.group(2))
+        t.type = 'LISTBULLET'
+        self.indents.append(indent)
+        self.queue.append(t)
+        t.lexer.lexpos += 1  # skip over the space that follows the bullet
+        s = ply.lex.LexToken()
+        s.type = 'INDENT'
+        s.value = indent
+        s.lineno = t.lineno
+        s.lexpos = t.lexpos
+        s.column = t.column
+        return s
 
     @ply.lex.TOKEN('[^' + text_breaks + ']+')
     def t_TEXT(self, t):
