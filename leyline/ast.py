@@ -149,6 +149,13 @@ class With(Node):
              ('text', ''))
 
 
+class List(Node):
+    """Represents a list of items."""
+
+    attrs = (('bullets', '*'),
+             ('items', list))
+
+
 class Table(Node):
     """Represents a table to render"""
 

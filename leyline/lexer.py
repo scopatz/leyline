@@ -154,6 +154,17 @@ class Lexer(object):
         li.column = len(t.value.lstrip('\n')) + 1
         self.queue.append(li)
 
+    def t_LISTBULLET(self, t):
+        r'\A(([-*]|\d+\.) )'
+        # return a list bullet right at the start of the string
+        self._set_column(t)
+        bullet = t.value.strip()
+        if bullet.endswith('.'):
+            # must be a number
+            bullet = int(bullet[:-1])
+        t.value = bullet
+        return t
+
     def t_INDENT(self, t):
         r'\n+[ \t]*(([-*]|\d+\.) )?'
         # track line numbers
@@ -277,7 +288,7 @@ class Lexer(object):
     def tokens(self):
         if self._tokens is None:
             toks = [t[2:] for t in dir(self) if t.startswith('t_') and t[2:].upper() == t[2:]]
-            toks.extend(['DEDENT', 'LISTBULLET'])
+            toks.extend(['DEDENT'])
             self._tokens = tuple(toks)
         return self._tokens
 

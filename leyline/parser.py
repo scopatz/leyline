@@ -6,7 +6,7 @@ import ply.yacc
 
 from leyline.lexer import Lexer
 from leyline.ast import (Document, Text, TextBlock, Comment, CodeBlock, Bold,
-    Italics, Underline, Strikethrough, With, RenderFor)
+    Italics, Underline, Strikethrough, With, RenderFor, List)
 
 
 class Parser(object):
@@ -45,7 +45,8 @@ class Parser(object):
         self._attach_nodedent_base_rules()
 
         tok_rules = ['text', 'doubledash', 'doublestar', 'doubletilde',
-                     'doubleunder', 'rend', 'with', 'indent', 'dedent']
+                     'doubleunder', 'rend', 'with', 'indent', 'dedent',
+                     'listbullet']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -173,6 +174,7 @@ class Parser(object):
         """block : textblock
                  | withblock
                  | rendblock
+                 | list
         """
         p[0] = p[1]
 
@@ -206,6 +208,51 @@ class Parser(object):
         text = self.leyline_doc[p[2].lexpos:p[4].lexpos]
         text = dedent(text.strip('\n'))
         p[0] = With(lineno=p1.lineno, column=p1.column, text=text, ctx=p1.value)
+
+    #
+    # list block
+    #
+
+    def p_listitem_text(self, p):
+        """listitem : listbullet_tok textblock"""
+        p[0] = [p[1], p[2]]
+
+    def p_listitem_blocks(self, p):
+        """listitem : listbullet_tok INDENT blocks DEDENT"""
+        p[0] = [p[1]] + p[3]
+
+    def p_listitem_text_blocks(self, p):
+        """listitem : listbullet_tok textblock INDENT blocks DEDENT"""
+        p[0] = [p[1], p[2]] + p[3]
+
+    def p_listitems_single(self, p):
+        """listitems : listitem"""
+        p[0] = [p[1]]
+
+    def p_listitems_append(self, p):
+        """listitems : listitems listitem"""
+        p1 = p[1]
+        p1.append(p[2])
+        p[0] = p1
+
+    def p_list(self, p):
+        """list : listitems"""
+        p1 = p[1]
+        firstbullet = p1[0][0].value
+        lineno = p1[0][0].lineno
+        column = p1[0][0].column
+        bullets = []
+        same_bullets = True
+        items = []
+        for item in p1:
+            b, i = item[0], item[1:]
+            if b.value != firstbullet:
+                same_bullets = False
+            bullets.append(b)
+            items.append(i)
+        if same_bullets:
+            bullets = firstbullet
+        p[0] = List(lineno=lineno, column=column, bullets=bullets, items=items)
 
     #
     # Define text blocks

@@ -1,7 +1,7 @@
 """Tests for leyline parser"""
 from leyline.parser import Parser
 from leyline.ast import (Document, Text, TextBlock, Bold, Italics,
-    Underline, Strikethrough, With, RenderFor)
+    Underline, Strikethrough, With, RenderFor, List)
 
 import pytest
 
@@ -76,6 +76,19 @@ PARSE_CASES = {
         ]),
     'with table::\n  x = (\n    1, 2,\n  )\n': Document(lineno=1, column=1, body=[
         With(lineno=1, column=1, ctx='table', text='x = (\n  1, 2,\n)'),
+        ]),
+    '* x\n* y\n* z': Document(lineno=1, column=1, body=[
+        List(lineno=1, column=1, bullets='*', items=[
+            [TextBlock(lineno=1, column=3, body=[
+                Text(lineno=1, column=3, text='x\n'),
+                ])],
+            [TextBlock(lineno=2, column=3, body=[
+                Text(lineno=2, column=3, text='y\n'),
+                ])],
+            [TextBlock(lineno=3, column=3, body=[
+                Text(lineno=3, column=3, text='z'),
+                ])],
+            ]),
         ]),
 }
 
