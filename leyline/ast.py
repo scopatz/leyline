@@ -275,3 +275,23 @@ class PrettyFormatter(Visitor):
         s += '\n])'
         return s
 
+    def visit_table(self, node):
+        s = 'Table(lineno={0}, column={1},\n'.format(node.lineno, node.column)
+        s += self.indent + 'widths=' + repr(node.widths) + ',\n'
+        s += self.indent + 'header_cols=' + repr(node.header_cols) + ',\n'
+        s += self.indent + 'header_rows=' + repr(node.header_rows) + ',\n'
+        s += self.indent + 'rows=[\n'
+        self.level += 1
+        for row in node.rows:
+            self.level += 1
+            s += self.indent*2 + '[\n'
+            for element in row:
+                s += self.indent*3 + '[\n'
+                t = ',\n'.join(map(self.visit, element))
+                s += self.indent*4 + indent(t, self.indent*4)
+                s += '\n' + self.indent*3 + '],\n'
+            s += '\n' + self.indent*2 + '],\n'
+            self.level -= 1
+        self.level -= 1
+        s += self.indent + ']\n)'
+        return s

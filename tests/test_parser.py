@@ -5,7 +5,7 @@ import pytest
 
 from leyline.parser import Parser
 from leyline.ast import (Document, Text, TextBlock, Bold, Italics,
-    Underline, Strikethrough, With, RenderFor, List)
+    Underline, Strikethrough, With, RenderFor, List, Table)
 
 
 def difftree(x, y, xname='expected', yname='observed'):
@@ -157,6 +157,40 @@ PARSE_CASES = {
                     Text(lineno=6, column=5, text='z'),
                    ])],
                 ]),
+            ],
+            ]),
+        ]),
+    # table
+    ('table::\n'
+     '  - * a\n'
+     '    * b\n'
+     '    * c\n'
+     '  - * x\n'
+     '    * y\n'
+     '    * z'): Document(lineno=1, column=1, body=[
+        Table(lineno=1, column=1, header_rows=1,
+              header_cols=0, widths='auto', rows=[
+            [
+                [TextBlock(lineno=2, column=7, body=[
+                    Text(lineno=2, column=7, text='a\n    '),
+                    ])],
+                [TextBlock(lineno=3, column=7, body=[
+                    Text(lineno=3, column=7, text='b\n    '),
+                    ])],
+                [TextBlock(lineno=4, column=7, body=[
+                    Text(lineno=4, column=7, text='c'),
+                   ])],
+            ],
+            [
+                [TextBlock(lineno=5, column=7, body=[
+                    Text(lineno=5, column=7, text='x\n    '),
+                    ])],
+                [TextBlock(lineno=6, column=7, body=[
+                    Text(lineno=6, column=7, text='y\n    '),
+                    ])],
+                [TextBlock(lineno=7, column=7, body=[
+                    Text(lineno=7, column=7, text='z'),
+                   ])],
             ],
             ]),
         ]),

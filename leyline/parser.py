@@ -275,11 +275,17 @@ class Parser(object):
     # table block
     #
 
-    def _item_to_row(self, item):
-        pass
-
     def _items_to_rows(self, items):
-        return list(map(self._item_to_row, items))
+        rows = []
+        for item in items:
+            if len(item) != 1:
+                self._parse_error("incorrectly formatted table row",
+                                  item[0])
+            row = item[0]
+            if not isinstance(row, List):
+                self._parse_error("table row must be formatted as a list", row)
+            rows.append(row.items)
+        return rows
 
     def p_table(self, p):
         """table : table_tok INDENT listitems DEDENT"""
