@@ -223,7 +223,7 @@ class Parser(object):
 
     def p_listitem_text_blocks(self, p):
         """listitem : listbullet_tok textblock INDENT blocks DEDENT"""
-        p[0] = [p[1], p[2]] + p[3]
+        p[0] = [p[1], p[2]] + p[4]
 
     def p_listitems_single(self, p):
         """listitems : listitem"""
@@ -253,6 +253,10 @@ class Parser(object):
         if same_bullets:
             bullets = firstbullet
         p[0] = List(lineno=lineno, column=column, bullets=bullets, items=items)
+
+    #
+    # table block
+    #
 
     #
     # Define text blocks

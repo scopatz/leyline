@@ -6,6 +6,10 @@ import textwrap
 RE_NEWLINE_INDENT = re.compile('\n+[ \t]*')
 
 
+def indent(s, ind):
+    return s.replace('\n', '\n' + ind)
+
+
 class Node:
 
     attrs = ()
@@ -224,7 +228,50 @@ class PrettyFormatter(Visitor):
         t.append('column={0}'.format(node.column))
         if node.extra:
             t.append('**' + repr(node.extra))
-        s += textwrap.indent(',\n'.join(t), self.indent)
+        s += indent(',\n'.join(t), self.indent)
         self.level -= 1
         s += '\n)'
         return s
+
+    def visit_document(self, node):
+        s = 'Document(lineno={0}, column={1}, body=[\n'.format(node.lineno, node.column)
+        self.level += 1
+        t = ',\n'.join(map(self.visit, node.body))
+        s += self.indent + indent(t, self.indent)
+        self.level -= 1
+        s += '\n])'
+        return s
+
+    def visit_list(self, node):
+        s = 'List(lineno={0}, column={1},\n'.format(node.lineno, node.column)
+        s += self.indent + 'bullets=' + repr(node.bullets) + ',\n'
+        s += self.indent + 'items=[\n'
+        self.level += 1
+        for item in node.items:
+            self.level += 1
+            s += self.indent*2 + '[\n'
+            t = ',\n'.join(map(self.visit, item))
+            s += self.indent*3 + indent(t, self.indent*3)
+            s += '\n' + self.indent*2 + '],\n'
+            self.level -= 1
+        self.level -= 1
+        s += self.indent + ']\n)'
+        return s
+
+    def visit_text(self, node):
+        s = 'Text(lineno={0}, column={1}, '.format(node.lineno, node.column)
+        s += 'text=' + pprint.pformat(node.text, indent=len(self.indent)).lstrip()
+        if '\n' in s:
+            s += '\n'
+        s += ')'
+        return s
+
+    def visit_textblock(self, node):
+        s = 'TextBlock(lineno={0}, column={1}, body=[\n'.format(node.lineno, node.column)
+        self.level += 1
+        t = ',\n'.join(map(self.visit, node.body))
+        s += self.indent + indent(t, self.indent)
+        self.level -= 1
+        s += '\n])'
+        return s
+

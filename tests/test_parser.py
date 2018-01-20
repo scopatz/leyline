@@ -1,9 +1,18 @@
 """Tests for leyline parser"""
+import difflib
+
+import pytest
+
 from leyline.parser import Parser
 from leyline.ast import (Document, Text, TextBlock, Bold, Italics,
     Underline, Strikethrough, With, RenderFor, List)
 
-import pytest
+
+def difftree(x, y, xname='expected', yname='observed'):
+    s = str(x).splitlines(True)
+    t = str(y).splitlines(True)
+    d = ''.join(difflib.unified_diff(s, t, fromfile=xname, tofile=yname))
+    return d
 
 
 PARSER = Parser(lexer_optimize=False, yacc_optimize=False, yacc_debug=True)
@@ -103,13 +112,30 @@ PARSE_CASES = {
                 ])],
             ]),
         ]),
+    # nested list
+    '1. x\n  * y\n2. z': Document(lineno=1, column=1, body=[
+        List(lineno=1, column=1, bullets=[1, 2], items=[
+            [TextBlock(lineno=1, column=4, body=[
+                Text(lineno=1, column=4, text='x'),
+                ]),
+             List(lineno=2, column=3, bullets='*', items=[
+                [TextBlock(lineno=2, column=5, body=[
+                    Text(lineno=2, column=5, text='y'),
+                    ]),
+                ]]),
+             ],
+            [TextBlock(lineno=3, column=4, body=[
+                Text(lineno=3, column=4, text='z'),
+                ])],
+            ]),
+        ]),
 }
 
 
 @pytest.mark.parametrize('doc, exp', PARSE_CASES.items())
 def test_parse(doc, exp):
-    obs = PARSER.parse(doc, debug_level=1)
-    assert exp == obs
+    obs = PARSER.parse(doc, debug_level=0)
+    assert exp == obs, difftree(exp, obs)
 
 
 BAD_PARSE_CASES = [
