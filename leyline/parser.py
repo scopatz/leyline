@@ -275,24 +275,102 @@ class Parser(object):
     # table block
     #
 
-    def _items_to_rows(self, items):
+    def _items_to_rows(self, items, lineno=None, column=None):
         rows = []
         for item in items:
             if len(item) != 1:
+                lineno = getattr(item, 'lineno', lineno)
+                column = getattr(item, 'column', column)
                 self._parse_error("incorrectly formatted table row",
-                                  item[0])
+                                  lineno=lineno, column=column)
             row = item[0]
             if not isinstance(row, List):
-                self._parse_error("table row must be formatted as a list", row)
+                lineno = getattr(row, 'lineno', lineno)
+                column = getattr(row, 'column', column)
+                self._parse_error("table row must be formatted as a list",
+                                  lineno=lineno, column=column)
             rows.append(row.items)
         return rows
 
-    def p_table(self, p):
+    _table_info_parsers = None
+
+    @property
+    def table_info_parsers(self):
+        if self._table_info_parsers is None:
+
+            def widths(s):
+                if s == 'auto':
+                    return True, s
+                w = []
+                total = 0.0
+                for t in s.split():
+                    try:
+                        n = float(t)
+                    except ValueError as e:
+                        return False, str(e)
+                    if n < 0.0:
+                        return False, "negative widths not allowed"
+                    w.append(n)
+                    total += n
+                for i in range(len(w)):
+                    w[i] /= total
+                return True, w
+
+            def asint(s):
+                try:
+                    n = int(s)
+                except ValueError as e:
+                    return False, str(e)
+                return True, n
+
+            tip = {'widths': widths, 'header_cols': asint, 'header_rows': asint}
+            self._table_info_parsers = tip
+        return self._table_info_parsers
+
+    def _parse_table_info(self, t):
+        lineno = t.lineno - 1
+        column = t.column
+        lines = t.value.splitlines()
+        info = {}
+        tip = self.table_info_parsers
+        for line in lines:
+            lineno += 1
+            line = line,strip()
+            if not line:
+                # empty lines are OK
+                continue
+            name, sep, value = line.partition('=')
+            if not sep:
+                self._parse_error("table metadata information must "
+                                  "contain an assignment equals sign '='",
+                                  lineno, column)
+            name = name.strip()
+            if name not in tip:
+                self._parse_error("table metadata name not recognized",
+                                  lineno, column)
+            if name in info:
+                self._parse_error(name + " appears multiple times in "
+                                  "table metadata", lineno, column)
+            status, val = tip[name](value)
+            if not status:
+                self._parse_error(val, lineno, column)
+            info[name] = val
+        return info
+
+    def p_table_plain(self, p):
         """table : table_tok INDENT listitems DEDENT"""
         p1 = p[1]
-        _, _, _, items = self._bullets_and_items(p[3])
-        rows = self._items_to_rows(items)
+        lineno, column, _, items = self._bullets_and_items(p[3])
+        rows = self._items_to_rows(items, lineno, column)
         p[0] = Table(lineno=p1.lineno, column=p1.column, rows=rows)
+
+    def p_table_info(self, p):
+        """table : table_tok INDENT text_tok listitems DEDENT"""
+        p1 = p[1]
+        lineno, column, _, items = self._bullets_and_items(p[4])
+        rows = self._items_to_rows(items, lineno, column)
+        p[0] = Table(lineno=p1.lineno, column=p1.column, rows=rows,
+                     **info)
 
     #
     # Define text blocks
