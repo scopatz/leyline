@@ -229,22 +229,23 @@ class Notes(ContextVisitor):
             for row in node.rows[:node.header_rows]:
                 cells = []
                 for cell in row:
-                    c = ''.join(map(self.visit, cell))
+                    c = ''.join(map(self.visit, cell)).strip()
                     cells.append('\\textbf{' + c + '}')
                 s += ' & '.join(cells)
-                s += r'\\' + '\n'
+                s += r' \\' + '\n'
             s += '\\hline\n'
         # do data rows
         for row in node.rows[node.header_rows:]:
             cells = []
             for i, cell in enumerate(row):
-                c = ''.join(map(self.visit, cell))
+                c = ''.join(map(self.visit, cell)).strip()
                 if i < node.header_cols:
                     cells.append('\\textbf{' + c + '}')
                 else:
                     cells.append(c)
             s += ' & '.join(cells)
-            s += r'\\' + '\n'
+            s += r' \\' + '\n'
         s += '\\hline\n'
         s += '\\end{tabular}\n'
         s += '\\end{center}\n'
+        return s

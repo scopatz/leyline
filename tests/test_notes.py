@@ -27,6 +27,34 @@ NOTES_CASES = {
 \date{\today}
 \maketitle
 """,
+# text and table
+"""hello world
+
+table::
+  header_cols = 1
+
+  * - a
+    - b
+    - c
+  * - l
+    - m
+    - n
+  * - x
+    - y
+    - z
+""": r"""hello world
+
+\begin{center}
+\begin{tabular}[hctb]{|l|cc|}
+\hline
+\textbf{a} & \textbf{b} & \textbf{c} \\
+\hline
+\textbf{l} & m & n \\
+\textbf{x} & y & z \\
+\hline
+\end{tabular}
+\end{center}
+"""
 }
 
 
