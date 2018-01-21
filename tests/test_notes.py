@@ -54,7 +54,21 @@ table::
 \hline
 \end{tabular}
 \end{center}
-"""
+""",
+# itemize
+"""chores:
+
+* make bed
+* brush teeth
+* do homework
+""": r"""chores:
+
+\begin{itemize}
+  \item make bed
+  \item brush teeth
+  \item do homework
+\end{itemize}
+""",
 }
 
 
@@ -64,4 +78,4 @@ def test_parse(doc, exp):
     visitor = Notes(tree=tree)
     obs = visitor.visit()
     exp = HEADER + exp + FOOTER
-    assert exp == obs#, difftex(exp, obs)
+    assert exp == obs

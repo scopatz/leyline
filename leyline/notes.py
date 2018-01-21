@@ -164,7 +164,7 @@ class Notes(ContextVisitor):
     def _itemize_list(self, node):
         s = '\\begin{itemize}\n'
         for item in node.items:
-            s += '  \\item ' + self.visit(item) + '\n'
+            s += '  \\item ' + ''.join(map(self.visit, item)).strip() + '\n'
         s += '\\end{itemize}\n'
         return s
 
@@ -172,7 +172,7 @@ class Notes(ContextVisitor):
         self._enumerate_level += 1
         s = '\\begin{enumerate}\n'
         for item in node.items:
-            s += '  \\item ' + self.visit(item) + '\n'
+            s += '  \\item ' + ''.join(map(self.visit, item)).strip() + '\n'
         s += '\\end{enumerate}\n'
         self._enumerate_level -= 1
         return s
@@ -190,7 +190,7 @@ class Notes(ContextVisitor):
         s = '\\begin{enumerate}\n'
         for num, item in zip(node.bullets, node.items):
             s += '  \\setcounter{' + counter + '}{' + str(num) + '}\n'
-            s += '  \\item ' + self.visit(item) + '\n'
+            s += '  \\item ' + ''.join(map(self.visit, item)).strip() + '\n'
         s += '\\end{enumerate}\n'
         self._enumerate_level -= 1
         return s
