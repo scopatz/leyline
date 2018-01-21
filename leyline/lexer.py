@@ -178,7 +178,7 @@ class Lexer(object):
         if i == last:
             # return if this basically text
             self._set_column(t)
-            t.type = 'TEXT'
+            t.type = 'PLAINTEXT'
             self._append_listbullet(bullet, t)
             return t
         # now we know we have an indent or a dedent
@@ -210,7 +210,7 @@ class Lexer(object):
     @ply.lex.TOKEN('[' + text_breaks + ']')
     def t_UNBREAKTEXT(self, t):
         self._set_column(t)
-        t.type = 'TEXT'
+        t.type = 'PLAINTEXT'
         post = self.inp[t.lexpos:]
         m = RE_LISTBULLET.match(post)
         if m is None:
@@ -237,7 +237,7 @@ class Lexer(object):
         return s
 
     @ply.lex.TOKEN('[^' + text_breaks + ']+')
-    def t_TEXT(self, t):
+    def t_PLAINTEXT(self, t):
         self._set_column(t)
         t.lexer.lineno += t.value.count('\n')
         return t
@@ -292,17 +292,17 @@ class Lexer(object):
         # custom handling of certain tokens
         if t is None:
             pass
-        elif t.type == 'TEXT':
+        elif t.type == 'PLAINTEXT':
             # merge text tokens
             next = self.queue.popleft() if self.queue else self.lexer.token()
-            while next is not None and next.type == 'TEXT':
+            while next is not None and next.type == 'PLAINTEXT':
                 t.value += next.value
                 next = self.queue.popleft() if self.queue else self.lexer.token()
             self.queue.appendleft(next)
         elif t.type in self._skip_trailing_ws:
             # draw down whitespace after a comments, etc
             next = self.queue.popleft() if self.queue else self.lexer.token()
-            while next is not None and (next.type == 'TEXT' and
+            while next is not None and (next.type == 'PLAINTEXT' and
                                         not next.value.strip()):
                 next = self.queue.popleft() if self.queue else self.lexer.token()
             self.queue.appendleft(next)

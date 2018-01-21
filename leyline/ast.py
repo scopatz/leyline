@@ -53,7 +53,7 @@ class Document(Node):
     attrs = (('body', list),)
 
 
-class Text(Node):
+class PlainText(Node):
     """Represents unformatted text."""
 
     attrs = (('text', ''),)
@@ -267,7 +267,7 @@ class PrettyFormatter(Visitor):
         s += ')'
         return s
 
-    visit_text = _textual_node
+    visit_plaintext = _textual_node
     visit_comment = _textual_node
 
     def _code_node(self, node):

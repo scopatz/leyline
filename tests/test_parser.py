@@ -4,7 +4,7 @@ import difflib
 import pytest
 
 from leyline.parser import Parser
-from leyline.ast import (Document, Text, TextBlock, Bold, Italics,
+from leyline.ast import (Document, PlainText, TextBlock, Bold, Italics,
     Underline, Strikethrough, With, RenderFor, List, Table, Comment,
     CodeBlock)
 
@@ -22,59 +22,59 @@ PARSE_CASES = {
     '': Document(lineno=1, column=1),
     'hello world': Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
-            Text(lineno=1, column=1, text='hello world')])
+            PlainText(lineno=1, column=1, text='hello world')])
         ]),
     'hello **world**': Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
-            Text(lineno=1, column=1, text='hello '),
+            PlainText(lineno=1, column=1, text='hello '),
             Bold(lineno=1, column=7, body=[
-                Text(lineno=1, column=9, text='world')])
+                PlainText(lineno=1, column=9, text='world')])
             ])
         ]),
     '~~hello **world**~~': Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
             Italics(lineno=1, column=1, body=[
-                Text(lineno=1, column=3, text='hello '),
+                PlainText(lineno=1, column=3, text='hello '),
                 Bold(lineno=1, column=9, body=[
-                    Text(lineno=1, column=11, text='world')])
+                    PlainText(lineno=1, column=11, text='world')])
                 ])
             ])
         ]),
     '--hello __world__--': Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
             Strikethrough(lineno=1, column=1, body=[
-                Text(lineno=1, column=3, text='hello '),
+                PlainText(lineno=1, column=3, text='hello '),
                 Underline(lineno=1, column=9, body=[
-                    Text(lineno=1, column=11, text='world')])
+                    PlainText(lineno=1, column=11, text='world')])
                 ])
             ])
         ]),
     'rend x::\n  some text\n': Document(lineno=1, column=1, body=[
         RenderFor(lineno=1, column=1, targets=set(['x']), body=[
             TextBlock(lineno=2, column=3, body=[
-                Text(lineno=2, column=3, text='some text')
+                PlainText(lineno=2, column=3, text='some text')
                 ])
             ])
         ]),
     'rend x y::\n  some text\n': Document(lineno=1, column=1, body=[
         RenderFor(lineno=1, column=1, targets=set(['x', 'y']), body=[
             TextBlock(lineno=2, column=3, body=[
-                Text(lineno=2, column=3, text='some text')
+                PlainText(lineno=2, column=3, text='some text')
                 ])
             ])
         ]),
     'rend x y::\n  some text\n  rend x::\n    only in x\n  in x & y\n': Document(lineno=1, column=1, body=[
         RenderFor(lineno=1, column=1, targets=set(['x', 'y']), body=[
             TextBlock(lineno=2, column=3, body=[
-                Text(lineno=2, column=3, text='some text\n  '),
+                PlainText(lineno=2, column=3, text='some text\n  '),
                 ]),
             RenderFor(lineno=3, column=3, targets=set(['x']), body=[
                 TextBlock(lineno=4, column=5, body=[
-                    Text(lineno=4, column=5, text='only in x'),
+                    PlainText(lineno=4, column=5, text='only in x'),
                     ]),
                 ]),
             TextBlock(lineno=5, column=3, body=[
-                Text(lineno=5, column=3, text='in x & y'),
+                PlainText(lineno=5, column=3, text='in x & y'),
                 ]),
             ])
         ]),
@@ -90,26 +90,26 @@ PARSE_CASES = {
     '* x\n* y\n* z': Document(lineno=1, column=1, body=[
         List(lineno=1, column=1, bullets='*', items=[
             [TextBlock(lineno=1, column=3, body=[
-                Text(lineno=1, column=3, text='x\n'),
+                PlainText(lineno=1, column=3, text='x\n'),
                 ])],
             [TextBlock(lineno=2, column=3, body=[
-                Text(lineno=2, column=3, text='y\n'),
+                PlainText(lineno=2, column=3, text='y\n'),
                 ])],
             [TextBlock(lineno=3, column=3, body=[
-                Text(lineno=3, column=3, text='z'),
+                PlainText(lineno=3, column=3, text='z'),
                 ])],
             ]),
         ]),
     '1. x\n2. y\n3. z': Document(lineno=1, column=1, body=[
         List(lineno=1, column=1, bullets=[1, 2, 3], items=[
             [TextBlock(lineno=1, column=4, body=[
-                Text(lineno=1, column=4, text='x\n'),
+                PlainText(lineno=1, column=4, text='x\n'),
                 ])],
             [TextBlock(lineno=2, column=4, body=[
-                Text(lineno=2, column=4, text='y\n'),
+                PlainText(lineno=2, column=4, text='y\n'),
                 ])],
             [TextBlock(lineno=3, column=4, body=[
-                Text(lineno=3, column=4, text='z'),
+                PlainText(lineno=3, column=4, text='z'),
                 ])],
             ]),
         ]),
@@ -117,16 +117,16 @@ PARSE_CASES = {
     '1. x\n  * y\n2. z': Document(lineno=1, column=1, body=[
         List(lineno=1, column=1, bullets=[1, 2], items=[
             [TextBlock(lineno=1, column=4, body=[
-                Text(lineno=1, column=4, text='x'),
+                PlainText(lineno=1, column=4, text='x'),
                 ]),
              List(lineno=2, column=3, bullets='*', items=[
                 [TextBlock(lineno=2, column=5, body=[
-                    Text(lineno=2, column=5, text='y'),
+                    PlainText(lineno=2, column=5, text='y'),
                     ]),
                 ]]),
              ],
             [TextBlock(lineno=3, column=4, body=[
-                Text(lineno=3, column=4, text='z'),
+                PlainText(lineno=3, column=4, text='z'),
                 ])],
             ]),
         ]),
@@ -136,26 +136,26 @@ PARSE_CASES = {
             [
             List(lineno=1, column=3, bullets='*', items=[
                 [TextBlock(lineno=1, column=5, body=[
-                    Text(lineno=1, column=5, text='a\n  '),
+                    PlainText(lineno=1, column=5, text='a\n  '),
                     ])],
                 [TextBlock(lineno=2, column=5, body=[
-                    Text(lineno=2, column=5, text='b\n  '),
+                    PlainText(lineno=2, column=5, text='b\n  '),
                     ])],
                 [TextBlock(lineno=3, column=5, body=[
-                    Text(lineno=3, column=5, text='c'),
+                    PlainText(lineno=3, column=5, text='c'),
                    ])],
                 ]),
             ],
             [
             List(lineno=4, column=3, bullets='*', items=[
                 [TextBlock(lineno=4, column=5, body=[
-                    Text(lineno=4, column=5, text='x\n  '),
+                    PlainText(lineno=4, column=5, text='x\n  '),
                     ])],
                 [TextBlock(lineno=5, column=5, body=[
-                    Text(lineno=5, column=5, text='y\n  '),
+                    PlainText(lineno=5, column=5, text='y\n  '),
                     ])],
                 [TextBlock(lineno=6, column=5, body=[
-                    Text(lineno=6, column=5, text='z'),
+                    PlainText(lineno=6, column=5, text='z'),
                    ])],
                 ]),
             ],
@@ -173,24 +173,24 @@ PARSE_CASES = {
               header_cols=0, widths='auto', rows=[
             [
                 [TextBlock(lineno=2, column=7, body=[
-                    Text(lineno=2, column=7, text='a\n    '),
+                    PlainText(lineno=2, column=7, text='a\n    '),
                     ])],
                 [TextBlock(lineno=3, column=7, body=[
-                    Text(lineno=3, column=7, text='b\n    '),
+                    PlainText(lineno=3, column=7, text='b\n    '),
                     ])],
                 [TextBlock(lineno=4, column=7, body=[
-                    Text(lineno=4, column=7, text='c'),
+                    PlainText(lineno=4, column=7, text='c'),
                    ])],
             ],
             [
                 [TextBlock(lineno=5, column=7, body=[
-                    Text(lineno=5, column=7, text='x\n    '),
+                    PlainText(lineno=5, column=7, text='x\n    '),
                     ])],
                 [TextBlock(lineno=6, column=7, body=[
-                    Text(lineno=6, column=7, text='y\n    '),
+                    PlainText(lineno=6, column=7, text='y\n    '),
                     ])],
                 [TextBlock(lineno=7, column=7, body=[
-                    Text(lineno=7, column=7, text='z'),
+                    PlainText(lineno=7, column=7, text='z'),
                    ])],
             ],
             ]),
@@ -206,10 +206,10 @@ PARSE_CASES = {
               header_cols=6, widths=[0.25, 0.75], rows=[
             [
                 [TextBlock(lineno=5, column=7, body=[
-                    Text(lineno=5, column=7, text='a\n    '),
+                    PlainText(lineno=5, column=7, text='a\n    '),
                     ])],
                 [TextBlock(lineno=6, column=7, body=[
-                    Text(lineno=6, column=7, text='z'),
+                    PlainText(lineno=6, column=7, text='z'),
                    ])],
             ],
             ]),
@@ -219,11 +219,11 @@ PARSE_CASES = {
      '# such comment, much wow\n'
      'world'): Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
-                  Text(lineno=1, column=1, text='hello\n'),
+                  PlainText(lineno=1, column=1, text='hello\n'),
                   ]),
         Comment(lineno=2, column=1, text='such comment, much wow'),
         TextBlock(lineno=3, column=1, body=[
-                  Text(lineno=3, column=1, text='world'),
+                  PlainText(lineno=3, column=1, text='world'),
                   ]),
         ]),
     # text, merged comment, text
@@ -232,11 +232,11 @@ PARSE_CASES = {
      '# much wow\n'
      'world'): Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
-                  Text(lineno=1, column=1, text='hello\n'),
+                  PlainText(lineno=1, column=1, text='hello\n'),
                   ]),
         Comment(lineno=2, column=1, text='such comment\nmuch wow'),
         TextBlock(lineno=4, column=1, body=[
-                  Text(lineno=4, column=1, text='world'),
+                  PlainText(lineno=4, column=1, text='world'),
                   ]),
         ]),
     # text, multilinecomment, text
@@ -247,11 +247,11 @@ PARSE_CASES = {
      '###\n'
      'world'): Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
-                  Text(lineno=1, column=1, text='hello\n'),
+                  PlainText(lineno=1, column=1, text='hello\n'),
                   ]),
         Comment(lineno=2, column=1, text='\nsuch comment\nmuch wow\n'),
         TextBlock(lineno=6, column=1, body=[
-                  Text(lineno=6, column=1, text='world'),
+                  PlainText(lineno=6, column=1, text='world'),
                   ]),
         ]),
     # text, code block, text
@@ -262,12 +262,12 @@ PARSE_CASES = {
      '```\n'
      'world'): Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
-                  Text(lineno=1, column=1, text='hello\n'),
+                  PlainText(lineno=1, column=1, text='hello\n'),
                   ]),
         CodeBlock(lineno=2, column=1, lang='json',
                   text='{"such": "code",\n "much": ["wow"]}\n'),
         TextBlock(lineno=6, column=1, body=[
-                  Text(lineno=6, column=1, text='world'),
+                  PlainText(lineno=6, column=1, text='world'),
                   ]),
         ]),
 }

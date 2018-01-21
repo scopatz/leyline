@@ -7,8 +7,9 @@ from collections.abc import Sequence
 import ply.yacc
 
 from leyline.lexer import Lexer
-from leyline.ast import (Node, Document, Text, TextBlock, Comment, CodeBlock,
-    Bold, Italics, Underline, Strikethrough, With, RenderFor, List, Table)
+from leyline.ast import (Node, Document, PlainText, TextBlock, Comment, CodeBlock,
+    Bold, Italics, Underline, Strikethrough, With, RenderFor, List, Table,
+    InlineCode)
 
 
 def _lowest_column(x):
@@ -57,10 +58,10 @@ class Parser(object):
 
         self._attach_nodedent_base_rules()
 
-        tok_rules = ['text', 'doubledash', 'doublestar', 'doubletilde',
+        tok_rules = ['plaintext', 'doubledash', 'doublestar', 'doubletilde',
                      'doubleunder', 'rend', 'with', 'indent', 'dedent',
                      'listbullet', 'table', 'comment', 'multilinecomment',
-                     'codeblock']
+                     'codeblock', 'inlinecode']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -241,6 +242,12 @@ class Parser(object):
         p[0] = CodeBlock(lineno=p1.lineno, column=p1.column,
                          lang=p1.value[0], text=p1.value[1])
 
+    def p_inlinecode(self, p):
+        """inlinecode : inlinecode_tok"""
+        p1 = p[1]
+        p[0] = InlineCode(lineno=p1.lineno, column=p1.column,
+                          lang=p1.value[0], text=p1.value[1])
+
     #
     # rend blocks
     #
@@ -404,7 +411,7 @@ class Parser(object):
         p[0] = Table(lineno=p1.lineno, column=p1.column, rows=rows)
 
     def p_table_info(self, p):
-        """table : table_tok INDENT text_tok listitems DEDENT"""
+        """table : table_tok INDENT plaintext_tok listitems DEDENT"""
         p1 = p[1]
         info = self._parse_table_info(p[3])
         lineno, column, _, items = self._bullets_and_items(p[4])
@@ -416,15 +423,28 @@ class Parser(object):
     # Define text blocks
     #
 
-    def p_textblock_entry_text(self, p):
-        """textblock_entry          : text_tok
-           not_bold_entry           : text_tok
-           not_italics_entry        : text_tok
-           not_underline_entry      : text_tok
-           not_strikethrough_entry  : text_tok
+    def p_textblock_entry_plain(self, p):
+        """textblock_entry          : plaintext_tok
+           not_bold_entry           : plaintext_tok
+           not_italics_entry        : plaintext_tok
+           not_underline_entry      : plaintext_tok
+           not_strikethrough_entry  : plaintext_tok
         """
         t = p[1]
-        p[0] = Text(text=t.value, lineno=t.lineno, column=t.column)
+        p[0] = PlainText(text=t.value, lineno=t.lineno, column=t.column)
+
+    def p_special_entry(self, p):
+        """special_entry : inlinecode"""
+        p[0] = p[1]
+
+    def p_textblock_entry_special(self, p):
+        """textblock_entry          : special_entry
+           not_bold_entry           : special_entry
+           not_italics_entry        : special_entry
+           not_underline_entry      : special_entry
+           not_strikethrough_entry  : special_entry
+        """
+        p[0] = p[1]
 
     def p_textblock_entry_formatted_text(self, p):
         """textblock_entry          : bold
