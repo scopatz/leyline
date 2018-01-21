@@ -273,7 +273,7 @@ class PrettyFormatter(Visitor):
     def _code_node(self, node):
         s = node.__class__.__name__
         s += '(lineno={0}, column={1}, '.format(node.lineno, node.column)
-        s += 'lang=' + repr(lang) + ', '
+        s += 'lang=' + repr(node.lang) + ', '
         s += 'text=' + pprint.pformat(node.text, indent=len(self.indent)).lstrip()
         if '\n' in s:
             s += '\n'

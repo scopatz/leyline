@@ -239,7 +239,7 @@ class Parser(object):
         """codeblock : codeblock_tok"""
         p1 = p[1]
         p[0] = CodeBlock(lineno=p1.lineno, column=p1.column,
-                         lang= p1.value[0], text=p1.value[1])
+                         lang=p1.value[0], text=p1.value[1])
 
     #
     # rend blocks

@@ -279,6 +279,9 @@ class Lexer(object):
         self.lexer = ply.lex.lex(module=self, reflags=re.DOTALL, **kwargs)
         self.reset()
 
+    _skip_trailing_ws = frozenset(['COMMENT', 'MULTILINECOMMENT',
+                                   'CODEBLOCK'])
+
     def _next_token(self):
         """Obtain the next token"""
         # get token from current queue or lexer
@@ -296,11 +299,11 @@ class Lexer(object):
                 t.value += next.value
                 next = self.queue.popleft() if self.queue else self.lexer.token()
             self.queue.appendleft(next)
-        elif t.type == 'COMMENT' or t.type == 'MULTILINECOMMENT':
-            # draw down whitespace after a comment
+        elif t.type in self._skip_trailing_ws:
+            # draw down whitespace after a comments, etc
             next = self.queue.popleft() if self.queue else self.lexer.token()
             while next is not None and (next.type == 'TEXT' and
-                                   not next.value.strip()):
+                                        not next.value.strip()):
                 next = self.queue.popleft() if self.queue else self.lexer.token()
             self.queue.appendleft(next)
         return t

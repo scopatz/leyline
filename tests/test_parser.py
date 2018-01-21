@@ -5,7 +5,8 @@ import pytest
 
 from leyline.parser import Parser
 from leyline.ast import (Document, Text, TextBlock, Bold, Italics,
-    Underline, Strikethrough, With, RenderFor, List, Table, Comment)
+    Underline, Strikethrough, With, RenderFor, List, Table, Comment,
+    CodeBlock)
 
 
 def difftree(x, y, xname='expected', yname='observed'):
@@ -249,6 +250,22 @@ PARSE_CASES = {
                   Text(lineno=1, column=1, text='hello\n'),
                   ]),
         Comment(lineno=2, column=1, text='\nsuch comment\nmuch wow\n'),
+        TextBlock(lineno=6, column=1, body=[
+                  Text(lineno=6, column=1, text='world'),
+                  ]),
+        ]),
+    # text, code block, text
+    ('hello\n'
+     '```json\n'
+     '{"such": "code",\n'
+     ' "much": ["wow"]}\n'
+     '```\n'
+     'world'): Document(lineno=1, column=1, body=[
+        TextBlock(lineno=1, column=1, body=[
+                  Text(lineno=1, column=1, text='hello\n'),
+                  ]),
+        CodeBlock(lineno=2, column=1, lang='json',
+                  text='{"such": "code",\n "much": ["wow"]}\n'),
         TextBlock(lineno=6, column=1, body=[
                   Text(lineno=6, column=1, text='world'),
                   ]),
