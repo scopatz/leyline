@@ -185,8 +185,9 @@ class Visitor(object):
     # which render target this class renders. None means all targets
     renders = None
 
-    def __init__(self, tree=None):
+    def __init__(self, tree=None, lang='python'):
         self.tree = tree
+        self.lang = lang
 
     def visit(self, node=None):
         """Walks over a node.  If no node is provided, the tree is used."""
