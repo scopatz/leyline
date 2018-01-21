@@ -7,8 +7,8 @@ from collections.abc import Sequence
 import ply.yacc
 
 from leyline.lexer import Lexer
-from leyline.ast import (Node, Document, Text, TextBlock, Comment, CodeBlock, Bold,
-    Italics, Underline, Strikethrough, With, RenderFor, List, Table)
+from leyline.ast import (Node, Document, Text, TextBlock, Comment, CodeBlock,
+    Bold, Italics, Underline, Strikethrough, With, RenderFor, List, Table)
 
 
 def _lowest_column(x):
@@ -59,7 +59,7 @@ class Parser(object):
 
         tok_rules = ['text', 'doubledash', 'doublestar', 'doubletilde',
                      'doubleunder', 'rend', 'with', 'indent', 'dedent',
-                     'listbullet', 'table']
+                     'listbullet', 'table', 'comment', 'codeblock']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -184,11 +184,13 @@ class Parser(object):
     #
 
     def p_block(self, p):
-        """block : textblock
-                 | withblock
-                 | rendblock
-                 | list
+        """block : list
                  | table
+                 | comment
+                 | codeblock
+                 | rendblock
+                 | textblock
+                 | withblock
         """
         p[0] = p[1]
 
@@ -201,6 +203,27 @@ class Parser(object):
         p1 = p[1]
         p1.append(p[2])
         p[0] = p1
+
+    #
+    # big blocks
+    #
+
+    def p_comment(self, p):
+        """comment : comment_tok"""
+        p1 = p[1]
+        p[0] = Comment(lineno=p1.lineno, column=p1.column, text=p1.value)
+
+    def p_comments(self, p):
+        """comment : comment comment_tok"""
+        p1 = p[1]
+        p1.text += '\n' + p[2].value
+        p[0] = p1
+
+    def p_codeblock(self, p):
+        """codeblock : codeblock_tok"""
+        p1 = p[1]
+        p[0] = CodeBlock(lineno=p1.lineno, column=p1.column,
+                         lang= p1.value[0], text=p1.value[1])
 
     #
     # rend blocks

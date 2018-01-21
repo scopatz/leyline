@@ -258,13 +258,30 @@ class PrettyFormatter(Visitor):
         s += self.indent + ']\n)'
         return s
 
-    def visit_text(self, node):
-        s = 'Text(lineno={0}, column={1}, '.format(node.lineno, node.column)
+    def _textual_node(self, node):
+        s = node.__class__.__name__
+        s += '(lineno={0}, column={1}, '.format(node.lineno, node.column)
         s += 'text=' + pprint.pformat(node.text, indent=len(self.indent)).lstrip()
         if '\n' in s:
             s += '\n'
         s += ')'
         return s
+
+    visit_text = _textual_node
+    visit_comment = _textual_node
+
+    def _code_node(self, node):
+        s = node.__class__.__name__
+        s += '(lineno={0}, column={1}, '.format(node.lineno, node.column)
+        s += 'lang=' + repr(lang) + ', '
+        s += 'text=' + pprint.pformat(node.text, indent=len(self.indent)).lstrip()
+        if '\n' in s:
+            s += '\n'
+        s += ')'
+        return s
+
+    visit_codeblock = _code_node
+    visit_inlinecode = _code_node
 
     def visit_textblock(self, node):
         s = 'TextBlock(lineno={0}, column={1}, body=[\n'.format(node.lineno, node.column)
@@ -295,3 +312,4 @@ class PrettyFormatter(Visitor):
         self.level -= 1
         s += self.indent + ']\n)'
         return s
+

@@ -5,7 +5,7 @@ import pytest
 
 from leyline.parser import Parser
 from leyline.ast import (Document, Text, TextBlock, Bold, Italics,
-    Underline, Strikethrough, With, RenderFor, List, Table)
+    Underline, Strikethrough, With, RenderFor, List, Table, Comment)
 
 
 def difftree(x, y, xname='expected', yname='observed'):
@@ -212,6 +212,18 @@ PARSE_CASES = {
                    ])],
             ],
             ]),
+        ]),
+    # text, simple comment, text
+    ('hello\n'
+     '# such comment, much wow\n'
+     'world'): Document(lineno=1, column=1, body=[
+        TextBlock(lineno=1, column=1, body=[
+                  Text(lineno=1, column=1, text='hello\n'),
+                  ]),
+        Comment(lineno=2, column=1, text='such comment, much wow'),
+        TextBlock(lineno=2, column=25, body=[
+                  Text(lineno=2, column=25, text='\nworld'),
+                  ]),
         ]),
 }
 
