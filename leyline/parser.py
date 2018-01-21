@@ -246,7 +246,7 @@ class Parser(object):
         """inlinecode : inlinecode_tok"""
         p1 = p[1]
         p[0] = InlineCode(lineno=p1.lineno, column=p1.column,
-                          lang=p1.value[0], text=p1.value[1])
+                          text=p1.value)
 
     #
     # rend blocks
