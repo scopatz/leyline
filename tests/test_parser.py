@@ -6,7 +6,7 @@ import pytest
 from leyline.parser import Parser
 from leyline.ast import (Document, PlainText, TextBlock, Bold, Italics,
     Underline, Strikethrough, With, RenderFor, List, Table, Comment,
-    CodeBlock, InlineCode)
+    CodeBlock, InlineCode, Equation, InlineMath)
 
 
 def difftree(x, y, xname='expected', yname='observed'):
@@ -53,6 +53,12 @@ PARSE_CASES = {
         TextBlock(lineno=1, column=1, body=[
             PlainText(lineno=1, column=1, text='hello '),
             InlineCode(lineno=1, column=7, lang='', text='world')
+            ])
+        ]),
+    'hello $\kappa$': Document(lineno=1, column=1, body=[
+        TextBlock(lineno=1, column=1, body=[
+            PlainText(lineno=1, column=1, text='hello '),
+            InlineMath(lineno=1, column=7, lang='', text='\kappa')
             ])
         ]),
     'rend x::\n  some text\n': Document(lineno=1, column=1, body=[
@@ -276,14 +282,28 @@ PARSE_CASES = {
                   PlainText(lineno=6, column=1, text='world'),
                   ]),
         ]),
+    # text, equation, text
+    ('hello\n'
+     '$$$\n'
+     '\kappa =\n'
+     'e^{i\pi}\n'
+     '$$$\n'
+     'world'): Document(lineno=1, column=1, body=[
+        TextBlock(lineno=1, column=1, body=[
+                  PlainText(lineno=1, column=1, text='hello\n'),
+                  ]),
+        Equation(lineno=2, column=1,
+                  text='\n\kappa =\ne^{i\pi}\n'),
+        TextBlock(lineno=6, column=1, body=[
+                  PlainText(lineno=6, column=1, text='world'),
+                  ]),
+        ]),
 }
 
 
 @pytest.mark.parametrize('doc, exp', PARSE_CASES.items())
 def test_parse(doc, exp):
     obs = PARSER.parse(doc, debug_level=0)
-    #PARSER.lexer.input(doc)
-    #print(list(PARSER.lexer))
     assert exp == obs, difftree(exp, obs)
 
 

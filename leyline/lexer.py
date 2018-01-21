@@ -280,7 +280,7 @@ class Lexer(object):
         self.reset()
 
     _skip_trailing_ws = frozenset(['COMMENT', 'MULTILINECOMMENT',
-                                   'CODEBLOCK'])
+                                   'CODEBLOCK', 'MULTILINEMATH'])
 
     def _next_token(self):
         """Obtain the next token"""

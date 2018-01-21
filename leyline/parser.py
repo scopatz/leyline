@@ -9,7 +9,7 @@ import ply.yacc
 from leyline.lexer import Lexer
 from leyline.ast import (Node, Document, PlainText, TextBlock, Comment, CodeBlock,
     Bold, Italics, Underline, Strikethrough, With, RenderFor, List, Table,
-    InlineCode)
+    InlineCode, Equation, InlineMath)
 
 
 def _lowest_column(x):
@@ -61,7 +61,7 @@ class Parser(object):
         tok_rules = ['plaintext', 'doubledash', 'doublestar', 'doubletilde',
                      'doubleunder', 'rend', 'with', 'indent', 'dedent',
                      'listbullet', 'table', 'comment', 'multilinecomment',
-                     'codeblock', 'inlinecode']
+                     'codeblock', 'inlinecode', 'multilinemath', 'inlinemath']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -189,6 +189,7 @@ class Parser(object):
         """block : list
                  | table
                  | comment
+                 | equation
                  | codeblock
                  | rendblock
                  | textblock
@@ -246,6 +247,22 @@ class Parser(object):
         """inlinecode : inlinecode_tok"""
         p1 = p[1]
         p[0] = InlineCode(lineno=p1.lineno, column=p1.column,
+                          text=p1.value)
+
+    #
+    # math
+    #
+
+    def p_equation(self, p):
+        """equation : multilinemath_tok"""
+        p1 = p[1]
+        p[0] = Equation(lineno=p1.lineno, column=p1.column,
+                        text=p1.value)
+
+    def p_inlinemath(self, p):
+        """inlinemath : inlinemath_tok"""
+        p1 = p[1]
+        p[0] = InlineMath(lineno=p1.lineno, column=p1.column,
                           text=p1.value)
 
     #
@@ -434,7 +451,9 @@ class Parser(object):
         p[0] = PlainText(text=t.value, lineno=t.lineno, column=t.column)
 
     def p_special_entry(self, p):
-        """special_entry : inlinecode"""
+        """special_entry : inlinecode
+                         | inlinemath
+        """
         p[0] = p[1]
 
     def p_textblock_entry_special(self, p):
