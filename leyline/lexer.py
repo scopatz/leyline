@@ -281,15 +281,26 @@ class Lexer(object):
 
     def _next_token(self):
         """Obtain the next token"""
-        # consume current queue
+        # get token from current queue or lexer
         if self.queue:
-            return self.queue.popleft()
-        # merge text tokens
-        t = self.lexer.token()
-        if t is not None and t.type == 'TEXT':
+            t = self.queue.popleft()
+        else:
+            t = self.lexer.token()
+        # custom handling of certain tokens
+        if t is None:
+            pass
+        elif t.type == 'TEXT':
+            # merge text tokens
             next = self.queue.popleft() if self.queue else self.lexer.token()
             while next is not None and next.type == 'TEXT':
                 t.value += next.value
+                next = self.queue.popleft() if self.queue else self.lexer.token()
+            self.queue.appendleft(next)
+        elif t.type == 'COMMENT' or t.type == 'MULTILINECOMMENT':
+            # draw down whitespace after a comment
+            next = self.queue.popleft() if self.queue else self.lexer.token()
+            while next is not None and (next.type == 'TEXT' and
+                                   not next.value.strip()):
                 next = self.queue.popleft() if self.queue else self.lexer.token()
             self.queue.appendleft(next)
         return t

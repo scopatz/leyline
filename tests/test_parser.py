@@ -221,8 +221,21 @@ PARSE_CASES = {
                   Text(lineno=1, column=1, text='hello\n'),
                   ]),
         Comment(lineno=2, column=1, text='such comment, much wow'),
-        TextBlock(lineno=2, column=25, body=[
-                  Text(lineno=2, column=25, text='\nworld'),
+        TextBlock(lineno=3, column=1, body=[
+                  Text(lineno=3, column=1, text='world'),
+                  ]),
+        ]),
+    # text, merged comment, text
+    ('hello\n'
+     '# such comment\n'
+     '# much wow\n'
+     'world'): Document(lineno=1, column=1, body=[
+        TextBlock(lineno=1, column=1, body=[
+                  Text(lineno=1, column=1, text='hello\n'),
+                  ]),
+        Comment(lineno=2, column=1, text='such comment\nmuch wow'),
+        TextBlock(lineno=4, column=1, body=[
+                  Text(lineno=4, column=1, text='world'),
                   ]),
         ]),
 }
@@ -231,6 +244,8 @@ PARSE_CASES = {
 @pytest.mark.parametrize('doc, exp', PARSE_CASES.items())
 def test_parse(doc, exp):
     obs = PARSER.parse(doc, debug_level=0)
+    #PARSER.lexer.input(doc)
+    #print(list(PARSER.lexer))
     assert exp == obs, difftree(exp, obs)
 
 
