@@ -74,6 +74,7 @@ class Notes(ContextVisitor):
         return s
 
     def visit_document(self, node):
+        self._enumerate_level = 0
         body = ''
         for n in node.body:
             body += self.visit(n)
@@ -155,3 +156,51 @@ class Notes(ContextVisitor):
         for n in node.body:
             body += self.visit(n)
         return body
+
+    def _itemize_list(self, node):
+        s = '\\begin{itemize}\n'
+        for item in node.items:
+            s += '  \\item ' + self.visit(item) + '\n'
+        s += '\\end{itemize}\n'
+        return s
+
+    def _enumerate_list(self, node):
+        self._enumerate_level += 1
+        s = '\\begin{enumerate}\n'
+        for item in node.items:
+            s += '  \\item ' + self.visit(item) + '\n'
+        s += '\\end{enumerate}\n'
+        self._enumerate_level -= 1
+        return s
+
+    _enum_counter = {
+        1: 'enumi',
+        2: 'enumii',
+        3: 'enumiii',
+        4: 'enumiv',
+        }
+
+    def _enumerate_custom_num_list(self, node):
+        self._enumerate_level += 1
+        counter = self._enum_counter.get(self._enumerate_level, 'enumi')
+        s = '\\begin{enumerate}\n'
+        for num, item in zip(node.bullets, node.items):
+            s += '  \\setcounter{' + counter + '}{' + str(num) + '}\n'
+            s += '  \\item ' + self.visit(item) + '\n'
+        s += '\\end{enumerate}\n'
+        self._enumerate_level -= 1
+        return s
+
+    def visit_list(self, node):
+        if isinstance(node.bullets, str):
+            return self._itemize_list(node)
+        elif isinstance(node.bullets, int):
+            return self._enumerate_list(node)
+        elif isinstance(node.bullets[0], str):
+            return self._itemize_list(node)
+        elif isinstance(node.bullets[0], int):
+            return self._enumerate_custom_num_list(node)
+        else:
+            msg = 'bullets not understood: ' + str(node)
+            raise ValueError(msg)
+
