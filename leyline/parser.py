@@ -335,7 +335,7 @@ class Parser(object):
         tip = self.table_info_parsers
         for line in lines:
             lineno += 1
-            line = line,strip()
+            line = line.strip()
             if not line:
                 # empty lines are OK
                 continue
@@ -367,6 +367,7 @@ class Parser(object):
     def p_table_info(self, p):
         """table : table_tok INDENT text_tok listitems DEDENT"""
         p1 = p[1]
+        info = self._parse_table_info(p[3])
         lineno, column, _, items = self._bullets_and_items(p[4])
         rows = self._items_to_rows(items, lineno, column)
         p[0] = Table(lineno=p1.lineno, column=p1.column, rows=rows,

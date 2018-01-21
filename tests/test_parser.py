@@ -194,6 +194,25 @@ PARSE_CASES = {
             ],
             ]),
         ]),
+    # Table with metadata
+    ('table::\n'
+     '  header_rows = 42\n'
+     '  header_cols = 6\n'
+     '  widths = 1 3\n'
+     '  - * a\n'
+     '    * z'): Document(lineno=1, column=1, body=[
+        Table(lineno=1, column=1, header_rows=42,
+              header_cols=6, widths=[0.25, 0.75], rows=[
+            [
+                [TextBlock(lineno=5, column=7, body=[
+                    Text(lineno=5, column=7, text='a\n    '),
+                    ])],
+                [TextBlock(lineno=6, column=7, body=[
+                    Text(lineno=6, column=7, text='z'),
+                   ])],
+            ],
+            ]),
+        ]),
 }
 
 
