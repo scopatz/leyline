@@ -59,7 +59,8 @@ class Parser(object):
 
         tok_rules = ['text', 'doubledash', 'doublestar', 'doubletilde',
                      'doubleunder', 'rend', 'with', 'indent', 'dedent',
-                     'listbullet', 'table', 'comment', 'codeblock']
+                     'listbullet', 'table', 'comment', 'multilinecomment',
+                     'codeblock']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -205,7 +206,7 @@ class Parser(object):
         p[0] = p1
 
     #
-    # big blocks
+    # comments blocks
     #
 
     def p_comment(self, p):
@@ -213,11 +214,26 @@ class Parser(object):
         p1 = p[1]
         p[0] = Comment(lineno=p1.lineno, column=p1.column, text=p1.value)
 
-    def p_comments(self, p):
+    def p_multilinecomment(self, p):
+        """comment : multilinecomment_tok"""
+        p1 = p[1]
+        p[0] = Comment(lineno=p1.lineno, column=p1.column, text=p1.value)
+
+    def p_comment_append(self, p):
         """comment : comment comment_tok"""
         p1 = p[1]
         p1.text += '\n' + p[2].value
         p[0] = p1
+
+    def p_multilinecomment_append(self, p):
+        """comment : comment multilinecomment_tok"""
+        p1 = p[1]
+        p1.text += '\n' + p[2].value
+        p[0] = p1
+
+    #
+    # code
+    #
 
     def p_codeblock(self, p):
         """codeblock : codeblock_tok"""

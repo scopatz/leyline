@@ -238,6 +238,21 @@ PARSE_CASES = {
                   Text(lineno=4, column=1, text='world'),
                   ]),
         ]),
+    # text, multilinecomment, text
+    ('hello\n'
+     '###\n'
+     'such comment\n'
+     'much wow\n'
+     '###\n'
+     'world'): Document(lineno=1, column=1, body=[
+        TextBlock(lineno=1, column=1, body=[
+                  Text(lineno=1, column=1, text='hello\n'),
+                  ]),
+        Comment(lineno=2, column=1, text='\nsuch comment\nmuch wow\n'),
+        TextBlock(lineno=6, column=1, body=[
+                  Text(lineno=6, column=1, text='world'),
+                  ]),
+        ]),
 }
 
 
