@@ -9,7 +9,7 @@ import ply.yacc
 from leyline.lexer import Lexer
 from leyline.ast import (Node, Document, PlainText, TextBlock, Comment, CodeBlock,
     Bold, Italics, Underline, Strikethrough, With, RenderFor, List, Table,
-    InlineCode, Equation, InlineMath)
+    InlineCode, Equation, InlineMath, CorporealMacro, IncorporealMacro)
 
 
 def _lowest_column(x):
@@ -61,7 +61,8 @@ class Parser(object):
         tok_rules = ['plaintext', 'doubledash', 'doublestar', 'doubletilde',
                      'doubleunder', 'rend', 'with', 'indent', 'dedent',
                      'listbullet', 'table', 'comment', 'multilinecomment',
-                     'codeblock', 'inlinecode', 'multilinemath', 'inlinemath']
+                     'codeblock', 'inlinecode', 'multilinemath', 'inlinemath',
+                     'doublelbrace', 'doublerbrace', 'lbracepercent']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -136,6 +137,24 @@ class Parser(object):
             self._lines = self.leyline_doc.splitlines(keepends=True)
         return self._lines
 
+    def source_slice(self, start, stop):
+        """Gets the original source code from two (line, col) tuples in
+        source-space (i.e. lineno and column start at 1).
+        """
+        bline, bcol = start
+        eline, ecol = stop
+        bline -= 1
+        bcol -= 1
+        lines = self.lines[bline:eline]
+        if ecol == 0:
+            explen = eline - bline
+            if explen == len(lines) and explen > 1:
+                lines[-1] = ''
+        else:
+            lines[-1] = lines[-1][:ecol]
+        lines[0] = lines[0][bcol:]
+        return ''.join(lines)
+
     def _parse_error(self, msg, lineno=None, column=None):
         if lineno is None or column is None:
             before, last = self._yacc_lookahead_token()
@@ -194,6 +213,7 @@ class Parser(object):
                  | rendblock
                  | textblock
                  | withblock
+                 | corporealmacro
         """
         p[0] = p[1]
 
@@ -264,6 +284,30 @@ class Parser(object):
         p1 = p[1]
         p[0] = InlineMath(lineno=p1.lineno, column=p1.column,
                           text=p1.value)
+
+    #
+    # macros
+    #
+
+    def p_incorporealmacro(self, p):
+        """incorporealmacro : doublelbrace_tok blocks doublerbrace_tok"""
+        p1 = p[1]
+        p3 = p[3]
+        text = self.source_slice((p1.lineno, p1.column + 2),
+                                 (p3.lineno, p3.column - 1)).strip()
+        p[0] = IncorporealMacro(lineno=p1.lineno, column=p1.column,
+                                text=text)
+
+    def p_corporealmacro(self, p):
+        """corporealmacro : lbracepercent_tok PLAINTEXT PERCENTRBRACE blocks LBRACEPERCENTRBRACE"""
+        p1 = p[1]
+        p2 = p[2].strip()
+        if not p2:
+            self._parse_error('corporeal macro must have a name!',
+                              lineno=p1.lineno, column=p1.column)
+        name, _, args = p2.partition(' ')
+        p[0] = CorporealMacro(lineno=p1.lineno, column=p1.column,
+                              name=name, args=args, body=p[4])
 
     #
     # rend blocks
@@ -453,6 +497,7 @@ class Parser(object):
     def p_special_entry(self, p):
         """special_entry : inlinecode
                          | inlinemath
+                         | incorporealmacro
         """
         p[0] = p[1]
 

@@ -6,7 +6,8 @@ import pytest
 from leyline.parser import Parser
 from leyline.ast import (Document, PlainText, TextBlock, Bold, Italics,
     Underline, Strikethrough, With, RenderFor, List, Table, Comment,
-    CodeBlock, InlineCode, Equation, InlineMath)
+    CodeBlock, InlineCode, Equation, InlineMath, CorporealMacro,
+    IncorporealMacro)
 
 
 def difftree(x, y, xname='expected', yname='observed'):
@@ -59,6 +60,12 @@ PARSE_CASES = {
         TextBlock(lineno=1, column=1, body=[
             PlainText(lineno=1, column=1, text='hello '),
             InlineMath(lineno=1, column=7, lang='', text='\kappa')
+            ])
+        ]),
+    'hello {{"{{world}}"}}': Document(lineno=1, column=1, body=[
+        TextBlock(lineno=1, column=1, body=[
+            PlainText(lineno=1, column=1, text='hello '),
+            IncorporealMacro(lineno=1, column=7, lang='', text='"{{world}}"')
             ])
         ]),
     'rend x::\n  some text\n': Document(lineno=1, column=1, body=[

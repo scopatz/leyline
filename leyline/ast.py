@@ -271,6 +271,7 @@ class PrettyFormatter(Visitor):
     visit_comment = _textual_node
     visit_equation = _textual_node
     visit_inlinemath = _textual_node
+    visit_incorporealmacro = _textual_node
 
     def _code_node(self, node):
         s = node.__class__.__name__
