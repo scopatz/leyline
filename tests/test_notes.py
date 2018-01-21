@@ -69,6 +69,37 @@ table::
   \item do homework
 \end{itemize}
 """,
+# enumerate
+"""chores:
+
+0. make bed
+0. brush teeth
+0. do homework
+""": r"""chores:
+
+\begin{enumerate}
+  \item make bed
+  \item brush teeth
+  \item do homework
+\end{enumerate}
+""",
+# custom num enumerate
+"""chores:
+
+2. make bed
+4. brush teeth
+42. do homework
+""": r"""chores:
+
+\begin{enumerate}
+  \setcounter{enumi}{2}
+  \item make bed
+  \setcounter{enumi}{4}
+  \item brush teeth
+  \setcounter{enumi}{42}
+  \item do homework
+\end{enumerate}
+""",
 }
 
 
