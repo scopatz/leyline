@@ -68,6 +68,13 @@ PARSE_CASES = {
             IncorporealMacro(lineno=1, column=7, lang='', text='"{{world}}"')
             ])
         ]),
+    '{% repeat 10 %}hello world{%}': Document(lineno=1, column=1, body=[
+        CorporealMacro(lineno=1, column=1, name='repeat', args='10', body=[
+            TextBlock(lineno=1, column=16, body=[
+                PlainText(lineno=1, column=16, text='hello world'),
+                ])
+            ])
+        ]),
     'rend x::\n  some text\n': Document(lineno=1, column=1, body=[
         RenderFor(lineno=1, column=1, targets=set(['x']), body=[
             TextBlock(lineno=2, column=3, body=[

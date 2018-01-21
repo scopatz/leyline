@@ -103,7 +103,7 @@ class CorporealMacro(Node):
     """A macro that has a body."""
 
     attrs = (('name', ''),
-             ('args', list),
+             ('args', ''),
              ('body', list))
 
 
@@ -316,3 +316,14 @@ class PrettyFormatter(Visitor):
         s += self.indent + ']\n)'
         return s
 
+    def visit_corporealmacro(self, node):
+        s = 'CorporealMacro(lineno={0}, column={1},\n'.format(node.lineno, node.column)
+        s += self.indent + 'name=' + repr(node.name) + ',\n'
+        s += self.indent + 'args=' + repr(node.args) + ',\n'
+        s += self.indent + 'body=[\n'
+        self.level += 1
+        t = ',\n'.join(map(self.visit, node.body))
+        s += self.indent*2 + indent(t, self.indent*2)
+        self.level -= 1
+        s += '\n])'
+        return s

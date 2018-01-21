@@ -62,7 +62,8 @@ class Parser(object):
                      'doubleunder', 'rend', 'with', 'indent', 'dedent',
                      'listbullet', 'table', 'comment', 'multilinecomment',
                      'codeblock', 'inlinecode', 'multilinemath', 'inlinemath',
-                     'doublelbrace', 'doublerbrace', 'lbracepercent']
+                     'doublelbrace', 'doublerbrace', 'lbracepercent',
+                     'percentrbrace']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -145,6 +146,7 @@ class Parser(object):
         eline, ecol = stop
         bline -= 1
         bcol -= 1
+        ecol -= 1
         lines = self.lines[bline:eline]
         if ecol == 0:
             explen = eline - bline
@@ -294,20 +296,22 @@ class Parser(object):
         p1 = p[1]
         p3 = p[3]
         text = self.source_slice((p1.lineno, p1.column + 2),
-                                 (p3.lineno, p3.column - 1)).strip()
+                                 (p3.lineno, p3.column)).strip()
         p[0] = IncorporealMacro(lineno=p1.lineno, column=p1.column,
                                 text=text)
 
     def p_corporealmacro(self, p):
-        """corporealmacro : lbracepercent_tok PLAINTEXT PERCENTRBRACE blocks LBRACEPERCENTRBRACE"""
+        """corporealmacro : lbracepercent_tok blocks percentrbrace_tok blocks LBRACEPERCENTRBRACE"""
         p1 = p[1]
-        p2 = p[2].strip()
-        if not p2:
+        p3 = p[3]
+        head = self.source_slice((p1.lineno, p1.column + 2),
+                                 (p3.lineno, p3.column)).strip()
+        if not head:
             self._parse_error('corporeal macro must have a name!',
                               lineno=p1.lineno, column=p1.column)
-        name, _, args = p2.partition(' ')
+        name, _, args = head.partition(' ')
         p[0] = CorporealMacro(lineno=p1.lineno, column=p1.column,
-                              name=name, args=args, body=p[4])
+                              name=name.strip(), args=args.strip(), body=p[4])
 
     #
     # rend blocks
