@@ -204,3 +204,43 @@ class Notes(ContextVisitor):
             msg = 'bullets not understood: ' + str(node)
             raise ValueError(msg)
 
+    def _compute_column_widths(self, node):
+        if node.widths != 'auto':
+            raise ValueError('Only "auto" widths are currently supported.')
+        normcols = len(node.rows[0]) - node.header_cols
+        w = '|'
+        if node.header_cols > 0:
+            w += ('l' * node.header_cols) + '|'
+        w += 'c' * (len(node.rows[0]) - node.header_cols)
+        w += '|'
+        return w
+
+    def visit_table(self, node):
+        widths = self._compute_column_widths(node)
+        s = '\\begin{center}\n'
+        s += '\\begin{tabular}[hctb]{' + widths + '}\n'
+        s += '\\hline\n'
+        # do header rows
+        if node.header_rows > 0:
+            for row in node.rows[:node.header_rows]:
+                cells = []
+                for cell in row:
+                    c = ''.join(map(self.visit, cell))
+                    cells.append('\\textbf{' + c + '}')
+                s += ' & '.join(cells)
+                s += r'\\' + '\n'
+            s += '\\hline\n'
+        # do data rows
+        for row in node.rows[node.header_rows:]:
+            cells = []
+            for i, cell in enumerate(row):
+                c = ''.join(map(self.visit, cell))
+                if i < node.header_cols:
+                    cells.append('\\textbf{' + c + '}')
+                else:
+                    cells.append(c)
+            s += ' & '.join(cells)
+            s += r'\\' + '\n'
+        s += '\\hline\n'
+        s += '\\end{tabular}\n'
+        s += '\\end{center}\n'
