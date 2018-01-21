@@ -182,6 +182,8 @@ class Visitor(object):
     """Super-class for all classes that should walk over a tree of nodes.
     This implements the visit() method.
     """
+    # which render target this class renders. None means all targets
+    renders = None
 
     def __init__(self, tree=None):
         self.tree = tree
@@ -286,14 +288,21 @@ class PrettyFormatter(Visitor):
     visit_codeblock = _code_node
     visit_inlinecode = _code_node
 
-    def visit_textblock(self, node):
-        s = 'TextBlock(lineno={0}, column={1}, body=[\n'.format(node.lineno, node.column)
+    def _bodied_text(self, node):
+        s = node.__class__.__name__
+        s += '(lineno={0}, column={1}, body=[\n'.format(node.lineno, node.column)
         self.level += 1
         t = ',\n'.join(map(self.visit, node.body))
         s += self.indent + indent(t, self.indent)
         self.level -= 1
         s += '\n])'
         return s
+
+    visit_textblock = _bodied_text
+    visit_bold = _bodied_text
+    visit_italics = _bodied_text
+    visit_strikethrough = _bodied_text
+    visit_underline = _bodied_text
 
     def visit_table(self, node):
         s = 'Table(lineno={0}, column={1},\n'.format(node.lineno, node.column)
@@ -320,6 +329,26 @@ class PrettyFormatter(Visitor):
         s = 'CorporealMacro(lineno={0}, column={1},\n'.format(node.lineno, node.column)
         s += self.indent + 'name=' + repr(node.name) + ',\n'
         s += self.indent + 'args=' + repr(node.args) + ',\n'
+        s += self.indent + 'body=[\n'
+        self.level += 1
+        t = ',\n'.join(map(self.visit, node.body))
+        s += self.indent*2 + indent(t, self.indent*2)
+        self.level -= 1
+        s += '\n])'
+        return s
+
+    def visit_with(self, node):
+        s = 'With(lineno={0}, column={1}, '.format(node.lineno, node.column)
+        s += 'ctx=' + repr(node.lang) + ', '
+        s += 'text=' + pprint.pformat(node.text, indent=len(self.indent)).lstrip()
+        if '\n' in s:
+            s += '\n'
+        s += ')'
+        return s
+
+    def visit_renderfor(self, node):
+        s = 'RenderFor(lineno={0}, column={1},\n'.format(node.lineno, node.column)
+        s += self.indent + 'targets=' + repr(node.targets) + ',\n'
         s += self.indent + 'body=[\n'
         self.level += 1
         t = ',\n'.join(map(self.visit, node.body))

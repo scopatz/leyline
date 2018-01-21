@@ -19,8 +19,6 @@ def tokstr(x):
 def ensure_tuple(x):
     if isinstance(x, LexToken):
         x = (x.type, x.value, x.lineno, x.column, x.lexpos)
-        # line numbers can no longer be solely determined from the lexer
-        #x = (x.type, x.value, x.lexpos)
     elif isinstance(x, tuple):
         pass
     elif isinstance(x, Sequence):

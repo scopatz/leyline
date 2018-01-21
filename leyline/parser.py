@@ -74,7 +74,7 @@ class Parser(object):
                            optimize=yacc_optimize,
                            tabmodule=yacc_table)
         if not yacc_debug:
-            yacc_kwargs['errorlog'] = yacc.NullLogger()
+            yacc_kwargs['errorlog'] = ply.yacc.NullLogger()
         if outputdir is None:
             outputdir = os.path.dirname(os.path.dirname(__file__))
         yacc_kwargs['outputdir'] = outputdir
@@ -626,3 +626,17 @@ class Parser(object):
         else:
             msg = 'code: {0}'.format(p.value),
             self._parse_error(msg, lineno=p.lineno, column=p.column)
+
+
+_PARSER = None
+
+
+def parse(s, *, filename='<document>', debug_level=0, **kwargs):
+    """Parses a leyline document and returns an AST.
+    filename and  debug_level are the same as in the parse() method.
+    Additional kwargs are passed to the parser constructor.
+    """
+    global _PARSER
+    if _PARSER is None:
+        _PARSER = Parser(**kwargs)
+    return _PARSER.parse(s, filename=filename, debug_level=debug_level)
