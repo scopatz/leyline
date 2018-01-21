@@ -63,7 +63,7 @@ class Notes(ContextVisitor):
             s += '\\title{' + title + '}\n'
         author = meta.get('author', None)
         if author is not None:
-            s += '\\author{' + title + '}\n'
+            s += '\\author{' + author + '}\n'
         date = meta.get('date', None)
         if date is None and s:
             s += '\\date{\\today}\n'
@@ -80,6 +80,10 @@ class Notes(ContextVisitor):
             body += self.visit(n)
         s = HEADER + self._make_title() + body + FOOTER
         return s
+
+    def visit_with(self, node):
+        super().visit_with(node)
+        return ''
 
     def visit_plaintext(self, node):
         return node.text
