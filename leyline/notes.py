@@ -119,3 +119,39 @@ class Notes(ContextVisitor):
 
     def visit_inlinemath(self, node):
         return '$' + node.text + '$'
+
+    def visit_bold(self, node):
+        body = '\\textbf{'
+        for n in node.body:
+            body += self.visit(n)
+        body += '}'
+        return body
+
+    def visit_italics(self, node):
+        body = '\\textit{'
+        for n in node.body:
+            body += self.visit(n)
+        body += '}'
+        return body
+
+    def visit_strikethrough(self, node):
+        body = '\\sout{'
+        for n in node.body:
+            body += self.visit(n)
+        body += '}'
+        return body
+
+    def visit_underline(self, node):
+        body = '\\underline{'
+        for n in node.body:
+            body += self.visit(n)
+        body += '}'
+        return body
+
+    def visit_renderfor(self, node):
+        if self.renders not in node.targets:
+            return ''
+        body = ''
+        for n in node.body:
+            body += self.visit(n)
+        return body
