@@ -15,6 +15,7 @@ HEADER = r"""
 \usepackage[normalem]{ulem}
 \usepackage[export]{adjustbox}
 \usepackage{amssymb}
+\usepackage{amsmath}
 \DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
 
 \definecolor{listinggray}{gray}{0.9}
