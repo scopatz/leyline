@@ -11,6 +11,7 @@ HEADER = r"""
 \usepackage{listings}
 \usepackage{textcomp}
 \usepackage[normalem]{ulem}
+\usepackage[export]{adjustbox}
 \usepackage{amssymb}
 \DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
 
@@ -248,4 +249,15 @@ class Notes(ContextVisitor):
         s += '\\hline\n'
         s += '\\end{tabular}\n'
         s += '\\end{center}\n'
+        return s
+
+    def visit_figure(self, node):
+        s = '\\begin{figure}[htbp]\n'
+        s += '\\includegraphics[scale=' + str(node.scale) + ','
+        s += node.align + ']{' + node.path + '}\n'
+        if node.caption:
+            s += '\\caption{'
+            s += ''.join(map(self.visit, node.caption)).strip()
+            s += '}\n'
+        s += '\\end{figure}\n'
         return s

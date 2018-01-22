@@ -322,6 +322,19 @@ PARSE_CASES = {
                     ]),
             ]),
         ]),
+    # figure with meta data
+    ('figure:: my file.png\n'
+     '  align = left\n'
+     '  scale = 0.5\n'
+     '\n'
+     '  Captions suck'): Document(lineno=1, column=1, body=[
+        Figure(lineno=1, column=1, align='left', scale=0.5,
+               path='my file.png', caption=[
+                TextBlock(lineno=2, column=3, body=[
+                    PlainText(lineno=2, column=3, text='Captions suck'),
+                    ]),
+            ]),
+        ]),
 }
 
 

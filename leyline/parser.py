@@ -523,7 +523,7 @@ class Parser(object):
     def _figure_info(self, text, lineno, column):
         """Parses out an info dictionary for figures"""
         info = {}
-        endline = lineno
+        endline = -1
         lines = text.splitlines()
         for line in lines:
             line = line.strip()
@@ -532,12 +532,13 @@ class Parser(object):
                 continue
             m = self.re_figinfo.match(line)
             if m is None:
+                endline -= 1
                 break
             key = m.group(1)
             val = m.group(2)
-            status, value = figure_info_parsers[key](val)
+            status, value = self.figure_info_parsers[key](val)
             if not status:
-                self._parse_error(value, endline, column)
+                self._parse_error(value, lineno + endline, column)
             info[key] = value
         return info, endline
 
@@ -552,12 +553,16 @@ class Parser(object):
                               lineno=lineno, column=column)
         text = self.leyline_doc[p[3].lexpos:p[5].lexpos]
         info, endline = self._figure_info(text, lineno, column)
-        # find the location where the caption really starts
-        blocks = p[4]
-        for i, block in enumerate(blocks):
-            if block.lineno >= endline:
-                break
-        caption = blocks[i:]
+        caption = p[4]
+        if info:
+            # find the location where the caption really starts
+            # since we found metadata, we know that the first
+            # part of the caption is a TextBlock whose first element
+            # is a plaintext. We'll remove the metadata in-place.
+            #assert False
+            pt = caption[0].body[0]
+            lines = pt.text.splitlines(keepends=True)
+            pt.text = ''.join(lines[endline:]).lstrip()
         p[0] = Figure(lineno=lineno, column=column, path=path,
                       caption=caption, **info)
 
