@@ -1,4 +1,6 @@
 """A leyline visitor for rendering lecture notes (via LaTeX)."""
+import os
+
 from leyline.context_visitor import ContextVisitor
 
 HEADER = r"""
@@ -53,6 +55,14 @@ class Notes(ContextVisitor):
     """A leyline visitor for rendering lecture notes (via LaTeX)."""
 
     renders = 'notes'
+
+    def render(self, *, tree=None, filename='', **kwargs):
+        """Performs the actual render, putting the notes file on disk."""
+        s = self.visit(tree)
+        basename, _ = os.path.splitext(filename)
+        outfile = basename + '.tex'
+        with open(outfile, 'w') as f:
+            f.write(s)
 
     def _make_title(self):
         if 'meta' not in self.contexts:
