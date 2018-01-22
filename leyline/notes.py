@@ -129,7 +129,7 @@ class Notes(ContextVisitor):
 
     def visit_equation(self, node):
         s = '\\begin{equation}\n'
-        s += node.text
+        s += node.text.strip() + '\n'
         s += '\\end{equation}\n'
         return s
 

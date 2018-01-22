@@ -12,7 +12,7 @@ TARGET_VISITORS = {}
 
 
 def render_target(tree, target, ns):
-    modname, clsname
+    modname, clsname = TARGETS[target]
     mod = importlib.import_module(modname)
     cls = getattr(mod, clsname)
     visitor = cls()
