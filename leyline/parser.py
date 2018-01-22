@@ -1,5 +1,6 @@
 """Parser for leyline"""
 import os
+import re
 import itertools
 from textwrap import dedent
 from collections.abc import Sequence
@@ -9,7 +10,7 @@ import ply.yacc
 from leyline.lexer import Lexer
 from leyline.ast import (Node, Document, PlainText, TextBlock, Comment, CodeBlock,
     Bold, Italics, Underline, Strikethrough, With, RenderFor, List, Table,
-    InlineCode, Equation, InlineMath, CorporealMacro, IncorporealMacro)
+    InlineCode, Equation, InlineMath, CorporealMacro, IncorporealMacro, Figure)
 
 
 def _lowest_column(x):
@@ -21,6 +22,28 @@ def _lowest_column(x):
         return _lowest_column(x[0])
     else:
         return 'cannot find column of type ' + repr(type(x))
+
+
+_ALIGNMENTS = frozenset(['left', 'right', 'center'])
+
+
+def _figure_align_parse(x):
+    x = x.strip()
+    if x not in _ALIGNMENTS:
+        return False, 'alignment {0!r} not in {1!r}'.format(x, _ALIGNMENTS)
+    return True, x
+
+
+def _figure_scale_parse(x):
+    try:
+        x = float(x)
+    except ValueError as e:
+        return False, str(e)
+    if x > 1.0:
+        return False, 'figure scale must be less than or equal to 1.0'
+    if x < 0.0:
+        return False, 'figure scale must be greater than or equal to 0.0'
+    return True, x
 
 
 class Parser(object):
@@ -63,7 +86,7 @@ class Parser(object):
                      'listbullet', 'table', 'comment', 'multilinecomment',
                      'codeblock', 'inlinecode', 'multilinemath', 'inlinemath',
                      'doublelbrace', 'doublerbrace', 'lbracepercent',
-                     'percentrbrace']
+                     'percentrbrace', 'figure']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -209,6 +232,7 @@ class Parser(object):
     def p_block(self, p):
         """block : list
                  | table
+                 | figure
                  | comment
                  | equation
                  | codeblock
@@ -483,6 +507,59 @@ class Parser(object):
         rows = self._items_to_rows(items, lineno, column)
         p[0] = Table(lineno=p1.lineno, column=p1.column, rows=rows,
                      **info)
+
+    #
+    # figure
+    #
+
+    figure_info_parsers = {
+        'align': _figure_align_parse,
+        'scale': _figure_scale_parse,
+        }
+
+    re_figinfo = re.compile('(' + '|'.join(sorted(figure_info_parsers.keys()))
+                            + ')\s*=(.*)')
+
+    def _figure_info(self, text, lineno, column):
+        """Parses out an info dictionary for figures"""
+        info = {}
+        endline = lineno
+        lines = text.splitlines()
+        for line in lines:
+            line = line.strip()
+            endline += 1
+            if not line:
+                continue
+            m = self.re_figinfo.match(line)
+            if m is None:
+                break
+            key = m.group(1)
+            val = m.group(2)
+            status, value = figure_info_parsers[key](val)
+            if not status:
+                self._parse_error(value, endline, column)
+            info[key] = value
+        return info, endline
+
+    def p_figure(self, p):
+        """figure : figure_tok PLAINTEXT indent_tok blocks dedent_tok"""
+        p1 = p[1]
+        lineno = p1.lineno
+        column = p1.column
+        path = p[2].strip()
+        if not path:
+            self._parse_error("figure must have path",
+                              lineno=lineno, column=column)
+        text = self.leyline_doc[p[3].lexpos:p[5].lexpos]
+        info, endline = self._figure_info(text, lineno, column)
+        # find the location where the caption really starts
+        blocks = p[4]
+        for i, block in enumerate(blocks):
+            if block.lineno >= endline:
+                break
+        caption = blocks[i:]
+        p[0] = Figure(lineno=lineno, column=column, path=path,
+                      caption=caption, **info)
 
     #
     # Define text blocks

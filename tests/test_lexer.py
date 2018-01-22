@@ -93,6 +93,7 @@ TOKEN_CASES = {
     'rend x y::': ['REND', set(['x', 'y']), 1, 1, 0],
     'with::': ['WITH', '', 1, 1, 0],
     'table::': ['TABLE', 'table::', 1, 1, 0],
+    'figure::': ['FIGURE', 'figure::', 1, 1, 0],
     'Please stay with me': ['PLAINTEXT', 'Please stay with me', 1, 1, 0],
     'dash-ing': ['PLAINTEXT', 'dash-ing', 1, 1, 0],
     '{braced}': ['PLAINTEXT', '{braced}', 1, 1, 0],

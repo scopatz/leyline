@@ -169,6 +169,14 @@ class Table(Node):
              ('rows', list))
 
 
+class Figure(Node):
+    """Represents a figure to display."""
+
+    attrs = (('path', ''),
+             ('align', 'center'),
+             ('scale', 1.0),
+             ('caption', list))
+
 #
 # Tools for trees of nodes.
 #
@@ -195,6 +203,8 @@ class Visitor(object):
             node = self.tree
         if node is None:
             raise RuntimeError('no node or tree given!')
+        if not isinstance(node, Node):
+            raise RuntimeError('{0!r} is not a leyline node'.format(node))
         for clsname in map(_lowername, type.mro(node.__class__)):
             meth = getattr(self, 'visit_' + clsname, None)
             if callable(meth):
@@ -353,6 +363,19 @@ class PrettyFormatter(Visitor):
         s += self.indent + 'body=[\n'
         self.level += 1
         t = ',\n'.join(map(self.visit, node.body))
+        s += self.indent*2 + indent(t, self.indent*2)
+        self.level -= 1
+        s += '\n])'
+        return s
+
+    def visit_figure(self, node):
+        s = 'Figure(lineno={0}, column={1},\n'.format(node.lineno, node.column)
+        s += self.indent + 'path=' + repr(node.path) + ',\n'
+        s += self.indent + 'align=' + repr(node.align) + ',\n'
+        s += self.indent + 'scale=' + repr(node.scale) + ',\n'
+        s += self.indent + 'caption=[\n'
+        self.level += 1
+        t = ',\n'.join(map(self.visit, node.caption))
         s += self.indent*2 + indent(t, self.indent*2)
         self.level -= 1
         s += '\n])'

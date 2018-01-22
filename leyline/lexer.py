@@ -109,6 +109,7 @@ class Lexer(object):
         'rend': 'REND',
         'with': 'WITH',
         'table': 'TABLE',
+        'figure': 'FIGURE',
         }
 
     def t_REND(self, t):
@@ -138,6 +139,11 @@ class Lexer(object):
 
     def t_TABLE(self, t):
         r'table::'
+        self._set_column(t)
+        return t
+
+    def t_FIGURE(self, t):
+        r'figure::'
         self._set_column(t)
         return t
 

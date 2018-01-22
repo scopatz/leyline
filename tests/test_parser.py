@@ -7,7 +7,7 @@ from leyline.parser import Parser
 from leyline.ast import (Document, PlainText, TextBlock, Bold, Italics,
     Underline, Strikethrough, With, RenderFor, List, Table, Comment,
     CodeBlock, InlineCode, Equation, InlineMath, CorporealMacro,
-    IncorporealMacro)
+    IncorporealMacro, Figure)
 
 
 def difftree(x, y, xname='expected', yname='observed'):
@@ -311,6 +311,16 @@ PARSE_CASES = {
         TextBlock(lineno=6, column=1, body=[
                   PlainText(lineno=6, column=1, text='world'),
                   ]),
+        ]),
+    # figure
+    ('figure:: my file.png\n'
+     '  Captions suck'): Document(lineno=1, column=1, body=[
+        Figure(lineno=1, column=1, align='center', scale=1.0,
+               path='my file.png', caption=[
+                TextBlock(lineno=2, column=3, body=[
+                    PlainText(lineno=2, column=3, text='Captions suck'),
+                    ]),
+            ]),
         ]),
 }
 
