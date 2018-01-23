@@ -113,12 +113,6 @@ class IncorporealMacro(Node):
     attrs = (('text', ''),)
 
 
-class Strikethrough(Node):
-    """Renders text with strikethrough formatting."""
-
-    attrs = (('body', list),)
-
-
 class Bold(Node):
     """Renders text with bold formatting."""
 
@@ -127,6 +121,24 @@ class Bold(Node):
 
 class Italics(Node):
     """Renders text with italic formatting."""
+
+    attrs = (('body', list),)
+
+
+class Strikethrough(Node):
+    """Renders text with strikethrough formatting."""
+
+    attrs = (('body', list),)
+
+
+class Subscript(Node):
+    """Renders text as a subscript."""
+
+    attrs = (('body', list),)
+
+
+class Superscript(Node):
+    """Renders text as a superscript."""
 
     attrs = (('body', list),)
 
@@ -313,6 +325,8 @@ class PrettyFormatter(Visitor):
     visit_bold = _bodied_text
     visit_italics = _bodied_text
     visit_strikethrough = _bodied_text
+    visit_subscript = _bodied_text
+    visit_supercript = _bodied_text
     visit_underline = _bodied_text
 
     def visit_table(self, node):

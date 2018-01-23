@@ -85,6 +85,8 @@ TOKEN_CASES = {
     '--': ['DOUBLEDASH', '--', 1, 1, 0],
     '~~': ['DOUBLETILDE', '~~', 1, 1, 0],
     '__': ['DOUBLEUNDER', '__', 1, 1, 0],
+    '^^': ['DOUBLECARET', '^^', 1, 1, 0],
+    '..': ['DOUBLEPERIOD', '..', 1, 1, 0],
     '{{': ['DOUBLELBRACE', '{{', 1, 1, 0],
     '}}': ['DOUBLERBRACE', '}}', 1, 1, 0],
     '{%': ['LBRACEPERCENT', '{%', 1, 1, 0],

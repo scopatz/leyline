@@ -10,7 +10,8 @@ import ply.yacc
 from leyline.lexer import Lexer
 from leyline.ast import (Node, Document, PlainText, TextBlock, Comment, CodeBlock,
     Bold, Italics, Underline, Strikethrough, With, RenderFor, List, Table,
-    InlineCode, Equation, InlineMath, CorporealMacro, IncorporealMacro, Figure)
+    InlineCode, Equation, InlineMath, CorporealMacro, IncorporealMacro, Figure,
+    Superscript, Subscript)
 
 
 def _lowest_column(x):
@@ -86,7 +87,7 @@ class Parser(object):
                      'listbullet', 'table', 'comment', 'multilinecomment',
                      'codeblock', 'inlinecode', 'multilinemath', 'inlinemath',
                      'doublelbrace', 'doublerbrace', 'lbracepercent',
-                     'percentrbrace', 'figure']
+                     'percentrbrace', 'figure', 'doubleperiod', 'doublecaret']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -567,6 +568,8 @@ class Parser(object):
            not_bold_entry           : plaintext_tok
            not_italics_entry        : plaintext_tok
            not_underline_entry      : plaintext_tok
+           not_subscript_entry      : plaintext_tok
+           not_superscript_entry    : plaintext_tok
            not_strikethrough_entry  : plaintext_tok
         """
         t = p[1]
@@ -584,6 +587,8 @@ class Parser(object):
            not_bold_entry           : special_entry
            not_italics_entry        : special_entry
            not_underline_entry      : special_entry
+           not_subscript_entry      : special_entry
+           not_superscript_entry    : special_entry
            not_strikethrough_entry  : special_entry
         """
         p[0] = p[1]
@@ -592,19 +597,39 @@ class Parser(object):
         """textblock_entry          : bold
                                     | italics
                                     | underline
+                                    | subscript
+                                    | superscript
                                     | strikethrough
            not_bold_entry           : italics
                                     | underline
+                                    | subscript
+                                    | superscript
                                     | strikethrough
            not_italics_entry        : bold
                                     | underline
+                                    | subscript
+                                    | superscript
                                     | strikethrough
            not_underline_entry      : bold
                                     | italics
+                                    | subscript
+                                    | superscript
+                                    | strikethrough
+           not_subscript_entry      : bold
+                                    | italics
+                                    | underline
+                                    | superscript
+                                    | strikethrough
+           not_superscript_entry    : bold
+                                    | italics
+                                    | underline
+                                    | subscript
                                     | strikethrough
            not_strikethrough_entry  : bold
                                     | italics
                                     | underline
+                                    | subscript
+                                    | superscript
         """
         p[0] = p[1]
 
@@ -613,6 +638,8 @@ class Parser(object):
            not_boldblock          : not_bold_entry
            not_italicsblock       : not_italics_entry
            not_underlineblock     : not_underline_entry
+           not_subscriptblock     : not_subscript_entry
+           not_superscriptblock   : not_superscript_entry
            not_strikethroughblock : not_strikethrough_entry
         """
         p1 = p[1]
@@ -623,6 +650,8 @@ class Parser(object):
            not_boldblock          : not_boldblock not_bold_entry
            not_italicsblock       : not_italicsblock not_italics_entry
            not_underlineblock     : not_underlineblock not_underline_entry
+           not_subscriptblock     : not_subscriptblock not_subscript_entry
+           not_superscriptblock   : not_superscriptblock not_superscript_entry
            not_strikethroughblock : not_strikethroughblock not_strikethrough_entry
         """
         p1 = p[1]
@@ -644,15 +673,25 @@ class Parser(object):
         p1 = p[1]
         p[0] = Italics(lineno=p1.lineno, column=p1.column, body=p[2].body)
 
-    def p_underline(self, p):
-        """underline : doubleunder_tok not_underlineblock DOUBLEUNDER"""
-        p1 = p[1]
-        p[0] = Underline(lineno=p1.lineno, column=p1.column, body=p[2].body)
-
     def p_strikethrough(self, p):
         """strikethrough : doubledash_tok not_strikethroughblock DOUBLEDASH"""
         p1 = p[1]
         p[0] = Strikethrough(lineno=p1.lineno, column=p1.column, body=p[2].body)
+
+    def p_subscript(self, p):
+        """subscript : doubleperiod_tok not_subscriptblock DOUBLEPERIOD"""
+        p1 = p[1]
+        p[0] = Subscript(lineno=p1.lineno, column=p1.column, body=p[2].body)
+
+    def p_superscript(self, p):
+        """superscript : doublecaret_tok not_superscriptblock DOUBLECARET"""
+        p1 = p[1]
+        p[0] = Superscript(lineno=p1.lineno, column=p1.column, body=p[2].body)
+
+    def p_underline(self, p):
+        """underline : doubleunder_tok not_underlineblock DOUBLEUNDER"""
+        p1 = p[1]
+        p[0] = Underline(lineno=p1.lineno, column=p1.column, body=p[2].body)
 
     #
     # represent a block that doesn't dedent past the current
