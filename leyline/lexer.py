@@ -162,30 +162,50 @@ class Lexer(object):
         self.queue.append(li)
 
     def t_LISTBULLET(self, t):
-        r'\A(([-*]|\d+\.) )'
-        # return a list bullet right at the start of the string
+        r'(([-*]|\d+\.) )'
+        # check to see if we have a real list bullet
         self._set_column(t)
+        toklen = len(t.value)
+        i = self.inp.rfind('\n', 0, t.lexpos) + 1
+        j = t.lexpos + toklen + 1
+        pre = self.inp[i:j]
+        m = RE_BULLETS.match(pre)
+        if m is None:
+            # we don't have a real list bullet, make text instead
+            t.type = 'PLAINTEXT'
+            return t
+        # must have a real list bullet
         bullet = t.value.strip()
         if bullet.endswith('.'):
             # must be a number
             bullet = int(bullet[:-1])
         t.value = bullet
+        # append indent after bullet
+        indent = self.indents[-1] + (' ' * toklen)
+        u = ply.lex.LexToken()
+        u.type = 'INDENT'
+        u.value = indent
+        u.lexpos = t.lexpos
+        u.lineno = t.lineno
+        u.column = t.column
+        self.queue.append(u)
+        self.indents.append(indent)
         return t
 
     def t_INDENT(self, t):
-        r'\n+[ \t]*(([-*]|\d+\.) )?'
+        r'\n+[ \t]*'
         # track line numbers
         nnl = t.value.count('\n')
         t.lexer.lineno += nnl
-        n = len(RE_LISTBULLET.split(t.value)[0])
-        t.value, bullet = t.value[:n], t.value[n:].strip()
+        #n = len(RE_LISTBULLET.split(t.value)[0])
+        #t.value, bullet = t.value[:n], t.value[n:].strip()
         i = RE_INDENT.match(t.value).group(1)
         last = self.indents[-1]
         if i == last:
             # return if this basically text
             self._set_column(t)
             t.type = 'PLAINTEXT'
-            self._append_listbullet(bullet, t)
+            #self._append_listbullet(bullet, t)
             return t
         # now we know we have an indent or a dedent
         t.lineno = t.lexer.lineno
@@ -208,7 +228,7 @@ class Lexer(object):
                 last = self.indents[-1]
         else:
             self._lexer_error(t, "Indentation level doesn't match")
-        self._append_listbullet(bullet, t, nnl=nnl)
+        #self._append_listbullet(bullet, t, nnl=nnl)
         return t
 
     text_breaks = '-\n#`${}%*~_:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
