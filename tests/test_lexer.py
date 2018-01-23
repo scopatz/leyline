@@ -121,7 +121,7 @@ TOKENS_CASES = {
         ['WITH', '', 1, 1, 0],
         ['INDENT', '  ', 2, 1, 6],
         ['PLAINTEXT', 'x = 10\n  y = 42', 2, 3, 9],
-        ['DEDENT', '  ', 3, 1, 24],
+        ['DEDENT', '  ', 4, 1, 24],
         ],
     '**__Bold And\nUnderline!__**': [
         ['DOUBLESTAR', '**', 1, 1, 0],
@@ -149,7 +149,7 @@ TOKENS_CASES = {
         ['LISTBULLET', '-', 3, 1, 10],
         ['INDENT', '  ', 3, 1, 10],
         ['PLAINTEXT', 'item 2', 3, 3, 12],
-        ['DEDENT', '  ', 3, 1, 18],
+        ['DEDENT', '  ', 4, 1, 18],
         ],
     'hello\n  1. yup\n  2. nope\n  3. maybe': [
         ['PLAINTEXT', 'hello', 1, 1, 0],
@@ -165,8 +165,8 @@ TOKENS_CASES = {
         ['LISTBULLET', 3, 4, 3, 27],
         ['INDENT', '     ', 4, 3, 27],
         ['PLAINTEXT', 'maybe', 4, 6, 30],
-        ['DEDENT', '     ', 4, 1, 35],
-        ['DEDENT', '  ', 4, 1, 35],
+        ['DEDENT', '     ', 5, 1, 35],
+        ['DEDENT', '  ', 5, 1, 35],
         ],
     # test nested list
     '* - hello\n  - world': [
@@ -179,8 +179,8 @@ TOKENS_CASES = {
         ['LISTBULLET', '-', 2, 3, 12],
         ['INDENT', '    ', 2, 3, 12],
         ['PLAINTEXT', 'world', 2, 5, 14],
-        ['DEDENT', '    ', 2, 1, 19],
-        ['DEDENT', '  ', 2, 1, 19],
+        ['DEDENT', '    ', 3, 1, 19],
+        ['DEDENT', '  ', 3, 1, 19],
         ],
 }
 

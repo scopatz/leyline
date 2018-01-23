@@ -279,11 +279,14 @@ class Lexer(object):
         if len(self.indents) == 1:
             return
         last = self.indents[-1]
+        lineno = t.lineno
+        if not self.inp.endswith('\n'):
+            lineno += 1
         while len(self.indents) > 1:
             dedent = ply.lex.LexToken()
             dedent.type = 'DEDENT'
             dedent.value = last
-            dedent.lineno = t.lineno
+            dedent.lineno = lineno
             dedent.lexpos = t.lexpos
             dedent.column = 1
             self.queue.append(dedent)
