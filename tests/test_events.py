@@ -7,6 +7,10 @@ from leyline.events import Event, Slide
 
 
 EVENTS_CASES = {
+"Hello World{{event(start=42.0)}}Next Slide": [
+      Event(body=[PlainText(lineno=1, column=1, text='Hello World')]),
+      Event(start=42.0, body=[PlainText(lineno=1, column=33, text='Next Slide')]),
+      ],
 "Hello World{{slide('A Title')}}Next Slide": [
       Event(body=[PlainText(lineno=1, column=1, text='Hello World')]),
       Slide(title='A Title', body=[PlainText(lineno=1, column=32, text='Next Slide')]),
