@@ -362,17 +362,9 @@ class Parser(object):
     # list block
     #
 
-    def p_listitem_text(self, p):
-        """listitem : listbullet_tok textblock"""
-        p[0] = [p[1], p[2]]
-
     def p_listitem_blocks(self, p):
         """listitem : listbullet_tok INDENT blocks DEDENT"""
         p[0] = [p[1]] + p[3]
-
-    def p_listitem_text_blocks(self, p):
-        """listitem : listbullet_tok textblock INDENT blocks DEDENT"""
-        p[0] = [p[1], p[2]] + p[4]
 
     def p_listitems_single(self, p):
         """listitems : listitem"""

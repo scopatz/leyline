@@ -147,53 +147,57 @@ class Lexer(object):
         self._set_column(t)
         return t
 
-    def _append_listbullet(self, bullet, t, nnl=0):
-        if not bullet:
-            return
-        if bullet.endswith('.'):
-            # must be a number
-            bullet = int(bullet[:-1])
-        li = ply.lex.LexToken()
-        li.type = 'LISTBULLET'
-        li.value = bullet
-        li.lineno = t.lexer.lineno
-        li.lexpos = t.lexpos + len(t.value) + nnl
-        li.column = len(t.value.lstrip('\n')) + 1
-        self.queue.append(li)
-
     def t_LISTBULLET(self, t):
-        r'\A(([-*]|\d+\.) )'
-        # return a list bullet right at the start of the string
+        r'(([-*]|\d+\.) )'
+        # check to see if we have a real list bullet
         self._set_column(t)
+        toklen = len(t.value)
+        i = self.inp.rfind('\n', 0, t.lexpos) + 1
+        j = t.lexpos + toklen + 1
+        pre = self.inp[i:j]
+        m = RE_BULLETS.match(pre)
+        if m is None:
+            # we don't have a real list bullet, make text instead
+            t.type = 'PLAINTEXT'
+            return t
+        # must have a real list bullet
         bullet = t.value.strip()
         if bullet.endswith('.'):
             # must be a number
             bullet = int(bullet[:-1])
         t.value = bullet
+        # append indent after bullet
+        indent = self.indents[-1] + (' ' * toklen)
+        u = ply.lex.LexToken()
+        u.type = 'INDENT'
+        u.value = indent
+        u.lexpos = t.lexpos
+        u.lineno = t.lineno
+        u.column = t.column
+        self.queue.append(u)
+        self.indents.append(indent)
         return t
 
     def t_INDENT(self, t):
-        r'\n+[ \t]*(([-*]|\d+\.) )?'
+        r'\n+[ \t]*'
         # track line numbers
         nnl = t.value.count('\n')
         t.lexer.lineno += nnl
-        n = len(RE_LISTBULLET.split(t.value)[0])
-        t.value, bullet = t.value[:n], t.value[n:].strip()
         i = RE_INDENT.match(t.value).group(1)
         last = self.indents[-1]
         if i == last:
             # return if this basically text
             self._set_column(t)
             t.type = 'PLAINTEXT'
-            self._append_listbullet(bullet, t)
             return t
         # now we know we have an indent or a dedent
         t.lineno = t.lexer.lineno
         t.column = 1
-        t.value = i
         if len(i) > len(last) and i.startswith(last):
+            t.value = i
             self.indents.append(i)
         elif len(i) < len(last) and last.startswith(i):
+            t.value = last
             del self.indents[-1]
             last = self.indents[-1]
             t.type = 'DEDENT'
@@ -208,7 +212,6 @@ class Lexer(object):
                 last = self.indents[-1]
         else:
             self._lexer_error(t, "Indentation level doesn't match")
-        self._append_listbullet(bullet, t, nnl=nnl)
         return t
 
     text_breaks = '-\n#`${}%*~_:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
@@ -258,11 +261,14 @@ class Lexer(object):
         if len(self.indents) == 1:
             return
         last = self.indents[-1]
+        lineno = t.lineno
+        if not self.inp.endswith('\n'):
+            lineno += 1
         while len(self.indents) > 1:
             dedent = ply.lex.LexToken()
             dedent.type = 'DEDENT'
             dedent.value = last
-            dedent.lineno = t.lineno
+            dedent.lineno = lineno
             dedent.lexpos = t.lexpos
             dedent.column = 1
             self.queue.append(dedent)
