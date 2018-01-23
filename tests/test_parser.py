@@ -116,10 +116,10 @@ PARSE_CASES = {
     '* x\n* y\n* z': Document(lineno=1, column=1, body=[
         List(lineno=1, column=1, bullets='*', items=[
             [TextBlock(lineno=1, column=3, body=[
-                PlainText(lineno=1, column=3, text='x\n'),
+                PlainText(lineno=1, column=3, text='x'),
                 ])],
             [TextBlock(lineno=2, column=3, body=[
-                PlainText(lineno=2, column=3, text='y\n'),
+                PlainText(lineno=2, column=3, text='y'),
                 ])],
             [TextBlock(lineno=3, column=3, body=[
                 PlainText(lineno=3, column=3, text='z'),
@@ -129,10 +129,10 @@ PARSE_CASES = {
     '1. x\n2. y\n3. z': Document(lineno=1, column=1, body=[
         List(lineno=1, column=1, bullets=[1, 2, 3], items=[
             [TextBlock(lineno=1, column=4, body=[
-                PlainText(lineno=1, column=4, text='x\n'),
+                PlainText(lineno=1, column=4, text='x'),
                 ])],
             [TextBlock(lineno=2, column=4, body=[
-                PlainText(lineno=2, column=4, text='y\n'),
+                PlainText(lineno=2, column=4, text='y'),
                 ])],
             [TextBlock(lineno=3, column=4, body=[
                 PlainText(lineno=3, column=4, text='z'),
@@ -140,14 +140,14 @@ PARSE_CASES = {
             ]),
         ]),
     # nested list
-    '1. x\n  * y\n2. z': Document(lineno=1, column=1, body=[
+    '1. x\n   * y\n2. z': Document(lineno=1, column=1, body=[
         List(lineno=1, column=1, bullets=[1, 2], items=[
             [TextBlock(lineno=1, column=4, body=[
-                PlainText(lineno=1, column=4, text='x'),
+                PlainText(lineno=1, column=4, text='x\n   '),
                 ]),
-             List(lineno=2, column=3, bullets='*', items=[
-                [TextBlock(lineno=2, column=5, body=[
-                    PlainText(lineno=2, column=5, text='y'),
+             List(lineno=2, column=4, bullets='*', items=[
+                [TextBlock(lineno=2, column=6, body=[
+                    PlainText(lineno=2, column=6, text='y'),
                     ]),
                 ]]),
              ],
@@ -162,10 +162,10 @@ PARSE_CASES = {
             [
             List(lineno=1, column=3, bullets='*', items=[
                 [TextBlock(lineno=1, column=5, body=[
-                    PlainText(lineno=1, column=5, text='a\n  '),
+                    PlainText(lineno=1, column=5, text='a'),
                     ])],
                 [TextBlock(lineno=2, column=5, body=[
-                    PlainText(lineno=2, column=5, text='b\n  '),
+                    PlainText(lineno=2, column=5, text='b'),
                     ])],
                 [TextBlock(lineno=3, column=5, body=[
                     PlainText(lineno=3, column=5, text='c'),
@@ -175,10 +175,10 @@ PARSE_CASES = {
             [
             List(lineno=4, column=3, bullets='*', items=[
                 [TextBlock(lineno=4, column=5, body=[
-                    PlainText(lineno=4, column=5, text='x\n  '),
+                    PlainText(lineno=4, column=5, text='x'),
                     ])],
                 [TextBlock(lineno=5, column=5, body=[
-                    PlainText(lineno=5, column=5, text='y\n  '),
+                    PlainText(lineno=5, column=5, text='y'),
                     ])],
                 [TextBlock(lineno=6, column=5, body=[
                     PlainText(lineno=6, column=5, text='z'),
@@ -199,10 +199,10 @@ PARSE_CASES = {
               header_cols=0, widths='auto', rows=[
             [
                 [TextBlock(lineno=2, column=7, body=[
-                    PlainText(lineno=2, column=7, text='a\n    '),
+                    PlainText(lineno=2, column=7, text='a'),
                     ])],
                 [TextBlock(lineno=3, column=7, body=[
-                    PlainText(lineno=3, column=7, text='b\n    '),
+                    PlainText(lineno=3, column=7, text='b'),
                     ])],
                 [TextBlock(lineno=4, column=7, body=[
                     PlainText(lineno=4, column=7, text='c'),
@@ -210,10 +210,10 @@ PARSE_CASES = {
             ],
             [
                 [TextBlock(lineno=5, column=7, body=[
-                    PlainText(lineno=5, column=7, text='x\n    '),
+                    PlainText(lineno=5, column=7, text='x'),
                     ])],
                 [TextBlock(lineno=6, column=7, body=[
-                    PlainText(lineno=6, column=7, text='y\n    '),
+                    PlainText(lineno=6, column=7, text='y'),
                     ])],
                 [TextBlock(lineno=7, column=7, body=[
                     PlainText(lineno=7, column=7, text='z'),
@@ -232,7 +232,7 @@ PARSE_CASES = {
               header_cols=6, widths=[0.25, 0.75], rows=[
             [
                 [TextBlock(lineno=5, column=7, body=[
-                    PlainText(lineno=5, column=7, text='a\n    '),
+                    PlainText(lineno=5, column=7, text='a'),
                     ])],
                 [TextBlock(lineno=6, column=7, body=[
                     PlainText(lineno=6, column=7, text='z'),
