@@ -210,10 +210,11 @@ class Lexer(object):
         # now we know we have an indent or a dedent
         t.lineno = t.lexer.lineno
         t.column = 1
-        t.value = i
         if len(i) > len(last) and i.startswith(last):
+            t.value = i
             self.indents.append(i)
         elif len(i) < len(last) and last.startswith(i):
+            t.value = last
             del self.indents[-1]
             last = self.indents[-1]
             t.type = 'DEDENT'
