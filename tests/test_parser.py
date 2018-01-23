@@ -32,14 +32,14 @@ PARSE_CASES = {
                 PlainText(lineno=1, column=9, text='world')])
             ])
         ]),
-    'hello ^^world^^': Document(lineno=1, column=1, body=[
+    'hello {^world^}': Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
             PlainText(lineno=1, column=1, text='hello '),
             Superscript(lineno=1, column=7, body=[
                 PlainText(lineno=1, column=9, text='world')])
             ])
         ]),
-    'hello ..world..': Document(lineno=1, column=1, body=[
+    'hello {_world_}': Document(lineno=1, column=1, body=[
         TextBlock(lineno=1, column=1, body=[
             PlainText(lineno=1, column=1, text='hello '),
             Subscript(lineno=1, column=7, body=[

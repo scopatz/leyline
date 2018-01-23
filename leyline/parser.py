@@ -87,7 +87,7 @@ class Parser(object):
                      'listbullet', 'table', 'comment', 'multilinecomment',
                      'codeblock', 'inlinecode', 'multilinemath', 'inlinemath',
                      'doublelbrace', 'doublerbrace', 'lbracepercent',
-                     'percentrbrace', 'figure', 'doubleperiod', 'doublecaret']
+                     'percentrbrace', 'figure', 'lbracecaret', 'lbraceunder']
         for rule in tok_rules:
             self._tok_rule(rule)
 
@@ -679,12 +679,12 @@ class Parser(object):
         p[0] = Strikethrough(lineno=p1.lineno, column=p1.column, body=p[2].body)
 
     def p_subscript(self, p):
-        """subscript : doubleperiod_tok not_subscriptblock DOUBLEPERIOD"""
+        """subscript : lbraceunder_tok not_subscriptblock UNDERRBRACE"""
         p1 = p[1]
         p[0] = Subscript(lineno=p1.lineno, column=p1.column, body=p[2].body)
 
     def p_superscript(self, p):
-        """superscript : doublecaret_tok not_superscriptblock DOUBLECARET"""
+        """superscript : lbracecaret_tok not_superscriptblock CARETRBRACE"""
         p1 = p[1]
         p[0] = Superscript(lineno=p1.lineno, column=p1.column, body=p[2].body)
 

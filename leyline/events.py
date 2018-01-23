@@ -39,6 +39,9 @@ class EventsVisitor(ContextVisitor):
 
 
 class Event:
+    """A generic event base class that contains ASTs to render for
+    a given duration begining at a start time.
+    """
 
     type = 'event'
     attrs = ()
@@ -82,6 +85,7 @@ class Event:
 
 
 class Slide(Event):
+    """A transition event representing moving to a new slide."""
 
     type = 'slide'
     attrs = ('title',)
@@ -89,6 +93,15 @@ class Slide(Event):
     def __init__(self, title='', **kwargs):
         super().__init__(**kwargs)
         self.title = title
+
+
+class Sleep(Event):
+    """An event representing pausing for the provided number of seconds."""
+
+    type = 'sleep'
+
+    def __init__(self, duration=0.0, **kwargs):
+        super().__init__(duration=duration, **kwargs)
 
 
 EVENTS_CTX = {_.type: _ for _ in globals().values() if isinstance(_, type) and issubclass(_, Event)}

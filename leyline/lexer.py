@@ -105,13 +105,23 @@ class Lexer(object):
         self._set_column(t)
         return t
 
-    def t_DOUBLECARET(self, t):
-        r'\^\^'
+    def t_LBRACECARET(self, t):
+        r'{\^'
         self._set_column(t)
         return t
 
-    def t_DOUBLEPERIOD(self, t):
-        r'\.\.'
+    def t_CARETRBRACE(self, t):
+        r'\^}'
+        self._set_column(t)
+        return t
+
+    def t_LBRACEUNDER(self, t):
+        r'{_'
+        self._set_column(t)
+        return t
+
+    def t_UNDERRBRACE(self, t):
+        r'_}'
         self._set_column(t)
         return t
 
@@ -224,7 +234,7 @@ class Lexer(object):
             self._lexer_error(t, "Indentation level doesn't match")
         return t
 
-    text_breaks = '-\n#`${}%*~_^.:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
+    text_breaks = '-\n#`${}%*~_^:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
 
     @ply.lex.TOKEN('[' + text_breaks + ']')
     def t_UNBREAKTEXT(self, t):
