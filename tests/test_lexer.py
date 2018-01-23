@@ -143,9 +143,13 @@ TOKENS_CASES = {
     '\n* item 1\n- item 2': [
         ['PLAINTEXT', '\n', 1, 1, 0],
         ['LISTBULLET', '*', 2, 1, 1],
-        ['PLAINTEXT', 'item 1\n', 2, 3, 3],
+        ['INDENT', '  ', 2, 1, 1],
+        ['PLAINTEXT', 'item 1', 2, 3, 3],
+        ['DEDENT', '', 3, 1, 9],
         ['LISTBULLET', '-', 3, 1, 10],
+        ['INDENT', '  ', 3, 1, 10],
         ['PLAINTEXT', 'item 2', 3, 3, 12],
+        ['DEDENT', '  ', 3, 1, 18],
         ],
     'hello\n  1. yup\n  2. nope\n  3. maybe': [
         ['PLAINTEXT', 'hello', 1, 1, 0],
@@ -158,6 +162,8 @@ TOKENS_CASES = {
         ['PLAINTEXT', 'maybe', 4, 6, 30],
         ['DEDENT', '  ', 4, 1, 35],
         ],
+}
+TOKENS_CASES = {
     # test nested list
     '* - hello\n  - world': [
         ['LISTBULLET', '*', 1, 1, 0],
