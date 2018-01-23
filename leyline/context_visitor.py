@@ -15,7 +15,7 @@ class ContextVisitor(Visitor):
 
         class Upper:
 
-            def render_notes(self):
+            def render_notes(self, visitor=None):
                 return str(self).upper()
 
     If instead, the object has a general purpose ``render()`` method,
@@ -24,7 +24,7 @@ class ContextVisitor(Visitor):
 
         class Lower:
 
-            def render(target):
+            def render(self, target=None, vistor=None):
                 return str(self).upper()
 
     If no render method is found on the object, the object itself is
@@ -58,10 +58,10 @@ class ContextVisitor(Visitor):
         if self.renders is not None:
             meth = getattr(obj, 'render_' + self.renders, None)
             if meth is not None:
-                return meth()
+                return meth(self)
         # see if there is a general purpose renderer
         meth = getattr(obj, 'render', None)
         if meth is not None:
-            return meth(self.renders)
+            return meth(target=self.renders, visitor=self)
         # finally just return the object
         return obj
