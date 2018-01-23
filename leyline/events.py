@@ -86,7 +86,7 @@ class Slide(Event):
     type = 'slide'
     attrs = ('title',)
 
-    def __init__(self, *, title='', **kwargs):
+    def __init__(self, title='', **kwargs):
         super().__init__(**kwargs)
         self.title = title
 
