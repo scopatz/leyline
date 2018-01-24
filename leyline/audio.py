@@ -105,13 +105,14 @@ class SSML(ContextVisitor):
             bullets = range(1, n+1)
         else:
             bullets = node.bullets
-        s = ''
+        s = '\n\n'
         for i, (bullet, item) in enumerate(zip(bullets, node.items), 1):
             if i == n:
                 s += ' and '
             if isinstance(bullet, int):
                 s += str(bullet) + ' <break strength="weak"/> '
             s += ''.join(map(self.visit, item)) + ' <break strength="strong"/> '
+        s += '\n\n'
         return s
 
     def visit_with(self, node):
