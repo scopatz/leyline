@@ -37,7 +37,7 @@ class SSML(ContextVisitor):
             aud += response["AudioStream"].read()
         with open(outfile, 'bw') as f:
             f.write(aud)
-        print('Done... ' + ns.out)
+        print('Done... ' + outfile)
 
     def _bodied_visit(self, node):
         """Visits each subnode in the body of the given node."""
@@ -106,10 +106,14 @@ class SSML(ContextVisitor):
         else:
             bullets = node.bullets
         s = ''
-        for i, (bulllet, item) = enumerate(zip(bullets, node.items), 1):
+        for i, (bullet, item) in enumerate(zip(bullets, node.items), 1):
             if i == n:
                 s += ' and '
             if isinstance(bullet, int):
                 s += str(bullet) + ' <break strength="weak"/> '
-            s += self.visit(item) + ' <break strength="strong"/> '
+            s += ''.join(map(self.visit, item)) + ' <break strength="strong"/> '
         return s
+
+    def visit_with(self, node):
+        super().visit_with(node)
+        return ''
