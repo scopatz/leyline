@@ -159,17 +159,17 @@ class Notes(ContextVisitor):
         return body
 
     def visit_subscript(self, node):
-        body = '\\ensuremath{_{\\textrm{'
+        body = '{\\ensuremath{_{\\textrm{'
         for n in node.body:
             body += self.visit(n)
-        body += '}}'
+        body += '}}}'
         return body
 
     def visit_superscript(self, node):
-        body = '\\ensuremath{^{\\textrm{'
+        body = '{\\ensuremath{^{\\textrm{'
         for n in node.body:
             body += self.visit(n)
-        body += '}}'
+        body += '}}}'
         return body
 
     def visit_underline(self, node):
