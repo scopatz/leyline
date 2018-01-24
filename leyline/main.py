@@ -1,4 +1,5 @@
 """Command line interface for leyline"""
+import getpass
 import importlib
 from argparse import ArgumentParser
 
@@ -7,6 +8,7 @@ from leyline.parser import parse
 
 TARGETS = {
     'notes': ('leyline.notes', 'Notes'),
+    'polly': ('leyline.audio', 'SSML'),
     }
 TARGET_VISITORS = {}
 
@@ -22,6 +24,8 @@ def render_target(tree, target, ns):
 def make_argparser():
     """makes an argparser instance for leyline"""
     p = ArgumentParser('leyline', description='Leyline Rendering Tool')
+    p.add_argument('--polly-user', default=getpass.getuser(),
+                   help='username for AWS Polly')
     p.add_argument('targets', nargs='+', help='targets to render the file into: '
                    + ', '.join(sorted(TARGETS.keys())),
                    choices=TARGETS)
