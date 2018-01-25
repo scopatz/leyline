@@ -9,6 +9,7 @@ from leyline.parser import parse
 TARGETS = {
     'notes': ('leyline.notes', 'Notes'),
     'polly': ('leyline.audio', 'SSML'),
+    'dictate': ('leyline.audio', 'Dictation'),
     }
 TARGET_VISITORS = {}
 

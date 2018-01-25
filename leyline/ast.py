@@ -515,7 +515,7 @@ def AnsiFormatter(Visitor):
                 header.extend(hcol)
         headers = list(map(''.join, map(self.visit, headers)))
         pt = prettytable.PrettyTable(headers)
-        for row in node.rows[node.header_rows:]
+        for row in node.rows[node.header_rows:]:
             r = list(map(''.join, map(self.visit, row)))
             for i in range(node.header_cols):
                 r[i] = '\u001b[1m' + r[i] + '\u001b[0m'

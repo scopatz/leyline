@@ -2,7 +2,7 @@
 import os
 import sys
 
-from leyline.ast import indent, AnsiFormatter
+from leyline.ast import indent, AnsiFormatter, Visitor
 from leyline.context_visitor import ContextVisitor
 
 
@@ -128,6 +128,14 @@ class Dictation(ContextVisitor, AnsiFormatter):
     """
 
     renders = 'audio'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def render(self, *, tree=None, **kwargs):
+        self.blocks = ['']
+        self.visit(tree)
+        print(self.blocks)
 
     def append(self, s):
         """Adds a string to the last block"""
