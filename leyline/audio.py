@@ -235,7 +235,12 @@ class Dictation(ContextVisitor):
             for i in item:
                 self.visit(i)
         self.blocks.append('')
-        return
 
-    def figure
-    def table
+    def visit_figure(self, node):
+        s = 'figure:: ' + node.path + '\n' + node.caption
+        self.append(s)
+
+    def visit_table(self, node):
+        s = ''
+        for row in table.rows:
+            for col in row:

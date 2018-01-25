@@ -394,3 +394,8 @@ class PrettyFormatter(Visitor):
         self.level -= 1
         s += '\n])'
         return s
+
+
+def PrettyTable(Visitor):
+
+    def visit_()
