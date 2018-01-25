@@ -2,6 +2,7 @@
 import os
 import sys
 
+from leyline.ast import indent
 from leyline.context_visitor import ContextVisitor
 
 
@@ -118,3 +119,123 @@ class SSML(ContextVisitor):
     def visit_with(self, node):
         super().visit_with(node)
         return ''
+
+
+class Dictation(ContextVisitor):
+    """A context visitor that renders the document by recording audio from the
+    microphone. Audio is chunked into small blocks and cached for later use.
+    Users should only need to record a certain block once.
+    """
+
+    renders = 'audio'
+
+    def append(self, s):
+        """Adds a string to the last block"""
+        self.blocks[-1] += s
+
+    def append_paragraphs(self, s):
+        # split paragraphs into separate blocks
+        paragraphs = s.split('\n\n')
+        self.append(paragraphs.pop(0))
+        self.blocks.extend(paragraphs)
+
+    def _bodied_visit(self, node):
+        for n in node.body:
+            self.visit(n)
+
+    visit_textblock = _bodied_visit
+
+    def visit_document(self, node):
+        self.blocks = ['']
+        self._bodied_visit(node)
+        for i in range(len(self.blocks) - 1, -1, -1):
+            block = self.blocks[i].strip()
+            if block:
+                # put the stripped version back in
+                self.blocks[i] = block
+            else:
+                # remove empty blocks
+                del self.blocks[i]
+        return self.blocks
+
+    def visit_bold(self, node):
+        self.append('**')
+        self._bodied_visit(node)
+        self.append('**')
+
+    def visit_italics(self, node):
+        self.append('~~')
+        self._bodied_visit(node)
+        self.append('~~')
+
+    def visit_strikthrough(self, node):
+        self.append('--')
+        self._bodied_visit(node)
+        self.append('--')
+
+    def visit_subscript(self, node):
+        self.append('{_')
+        self._bodied_visit(node)
+        self.append('_}')
+
+    def visit_superscript(self, node):
+        self.append('{^')
+        self._bodied_visit(node)
+        self.append('^}')
+
+    def visit_underline(self, node):
+        self.append('__')
+        self._bodied_visit(node)
+        self.append('__')
+
+    def visit_inlinecode(self, node):
+        self.append('``')
+        self._bodied_visit(node)
+        self.append('``')
+
+    def visit_inlinemath(self, node):
+        self.append('$$')
+        self._bodied_visit(node)
+        self.append('$$')
+
+    def visit_renderfor(self, node):
+        if self.renders not in node.targets:
+            return
+        self._bodied_visit(node)
+
+    def visit_plaintext(self, node):
+        self.append_paragraphs(node.text)
+
+    def visit_comment(self, node):
+        pass
+
+    def visit_codeblock(self, node):
+        s = '```' + node.lang + '\n' + node.text.strip() + '\n```\n'
+        self.append(s)
+
+    def visit_equation(self, node):
+        s = '$$$\n' + node.text.strip() + '\n$$$\n'
+        self.append(s)
+
+    def visit_incorporealmacro(self, node):
+        s = super().visit_incorporealmacro(node)
+        self.append_paragraphs(s)
+
+    def visit_list(self, node):
+        n = len(node.items)
+        if isinstance(node.bullets, str):
+            bullets = [node.bullets] * n
+        elif isinstance(node.bullets, str):
+            bullets = range(1, n+1)
+        else:
+            bullets = node.bullets
+        for bullet, item in zip(bullets, node.items):
+            # make sure we start with a new paragraph for each bullet
+            self.blocks.append(str(bullet) + ' ')
+            for i in item:
+                self.visit(i)
+        self.blocks.append('')
+        return
+
+    def figure
+    def table
