@@ -189,3 +189,61 @@ class Dictation(ContextVisitor, AnsiFormatter):
     def visit_figure(self, node):
         s = 'figure:: ' + node.path + '\n' + node.caption
         return s
+
+
+class Recorder:
+    """Manages the recording of audio."""
+
+    def __init__(self, device=None):
+        """
+        Parameters
+        ----------
+        device : int, optional
+            The audio input device to use. If None, the user will be prompted
+            for a selection.
+        """
+        self._gradient = None
+        self._device = device
+        self.device = device
+
+    @property
+    def gradient():
+        if self._gradient is not None:
+            return self._gradient
+        #from https://gist.github.com/maurisvh/df919538bcef391bc89f
+        template = '\x1b[{};{}m{}'
+        colors = 30, 34, 35, 91, 93, 97
+        chars = ':%#'
+        self._gradient = gradient = []
+        for bg, fg in zip(colors, colors[1:]):
+            # add a blank space to start
+            gradient.append('\x1b[{};{}m{}'.format(fg, bg + 10, ' '))
+            # add forward colors
+            for char in chars:
+                gradient.append('\x1b[{};{}m{}'.format(fg, bg + 10, char))
+            # reverse colors and switch fg, bg
+            for char in reversed(chars):
+                gradient.append('\x1b[{};{}m{}'.format(bg, fg + 10, char))
+        return gradient
+
+
+    @property
+    def device(self):
+        return self._device
+
+    @device.setter
+    def device(self, val):
+        if val is None:
+            import sounddevice as sd
+            info = s.query_devices()
+            if 'linux' in sys.platform:
+                info = '\n'.join(line for line in info.splitlines() if '(0 in' not in line)
+            print('\x1b[1mAvailable Input Devices:\x1b[0m')
+            print(info)
+        while val is None:
+            s = input('device number: ')
+            try:
+                val = int(s)
+            except ValueError:
+                print('please use an integer to select the input device.')
+        self._device = val
