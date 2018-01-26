@@ -129,9 +129,6 @@ class Dictation(ContextVisitor, AnsiFormatter):
 
     renders = 'audio'
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
     def render(self, *, tree=None, **kwargs):
         self.blocks = ['']
         self.visit(tree)
@@ -163,7 +160,9 @@ class Dictation(ContextVisitor, AnsiFormatter):
             else:
                 # remove empty blocks
                 del self.blocks[i]
-        return self.blocks
+
+        list(map(print, self.blocks))
+        #return self.blocks
 
     def visit_renderfor(self, node):
         if self.renders not in node.targets:
@@ -173,18 +172,25 @@ class Dictation(ContextVisitor, AnsiFormatter):
     def visit_comment(self, node):
         return ''
 
+    def visit_with(self, node):
+        super().visit_with(node)
+        return ''
+
     def visit_incorporealmacro(self, node):
         s = super().visit_incorporealmacro(node)
-        self.append_paragraphs(s)
+        return s
 
     def visit_list(self, node):
         for bullet, item in node:
             s = '\u001b[32;1m'
             s += bullet if isinstance(bullet, str) else str(bullet) + '.'
             s += '\u001b[0m '
-            s += ''.join(map(self.visit, item)) + '\n'
             self.blocks.append(s)
+            for i in item:
+                self.visit(i)
+            self.append('\n')
         self.blocks.append('')
+        return ''
 
     def visit_figure(self, node):
         s = 'figure:: ' + node.path + '\n' + node.caption

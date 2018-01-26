@@ -25,6 +25,8 @@ def render_target(tree, target, ns):
 def make_argparser():
     """makes an argparser instance for leyline"""
     p = ArgumentParser('leyline', description='Leyline Rendering Tool')
+    p.add_argument('--pdb', '--debug', default=False, action='store_true',
+                   dest='debug', help='Enter into pdb on error.')
     p.add_argument('--polly-user', default=getpass.getuser(),
                    help='username for AWS Polly')
     p.add_argument('targets', nargs='+', help='targets to render the file into: '
@@ -42,7 +44,17 @@ def main(args=None):
         s = f.read()
     tree = parse(s)
     for target in ns.targets:
-        render_target(tree, target, ns)
+        try:
+            render_target(tree, target, ns)
+        except Exception:
+            if not ns.debug:
+                raise
+            import sys
+            import pdb
+            import traceback
+            type, value, tb = sys.exc_info()
+            traceback.print_exc()
+            pdb.post_mortem(tb)
 
 
 if __name__ == '__main__':

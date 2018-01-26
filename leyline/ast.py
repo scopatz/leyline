@@ -375,7 +375,7 @@ class PrettyFormatter(Visitor):
 
     def visit_with(self, node):
         s = 'With(lineno={0}, column={1}, '.format(node.lineno, node.column)
-        s += 'ctx=' + repr(node.lang) + ', '
+        s += 'ctx=' + repr(node.ctx) + ', '
         s += 'text=' + pprint.pformat(node.text, indent=len(self.indent)).lstrip()
         if '\n' in s:
             s += '\n'
@@ -407,7 +407,7 @@ class PrettyFormatter(Visitor):
         return s
 
 
-def AnsiFormatter(Visitor):
+class AnsiFormatter(Visitor):
     """Creates a pretty version of the table, including ANSI escape sequnces"""
 
     def _empty_visit(self, node):
@@ -463,15 +463,11 @@ def AnsiFormatter(Visitor):
         return s
 
     def visit_inlinecode(self, node):
-        s = '\u001b[7m'
-        s += self._bodied_visit(node)
-        s += '\u001b[0m'
+        s = '\u001b[7m' + node.text + '\u001b[0m'
         return s
 
     def visit_inlinemath(self, node):
-        s = '\u001b[40;1m\u001b[37;1m'
-        s += self._bodied_visit(node)
-        s += '\u001b[0m'
+        s = '\u001b[40;1m\u001b[37;1m' + node.text + '\u001b[0m'
         return s
 
     def visit_plaintext(self, node):
