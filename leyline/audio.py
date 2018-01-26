@@ -132,7 +132,9 @@ class Dictation(ContextVisitor, AnsiFormatter):
     def render(self, *, tree=None, **kwargs):
         self.blocks = ['']
         self.visit(tree)
-        print(self.blocks)
+        for block in self.blocks:
+            print(block)
+            print("=====")
 
     def append(self, s):
         """Adds a string to the last block"""
@@ -160,9 +162,7 @@ class Dictation(ContextVisitor, AnsiFormatter):
             else:
                 # remove empty blocks
                 del self.blocks[i]
-
-        list(map(print, self.blocks))
-        #return self.blocks
+        return self.blocks
 
     def visit_renderfor(self, node):
         if self.renders not in node.targets:
