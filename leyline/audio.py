@@ -1,9 +1,24 @@
 """Tools for rendering audio from a document."""
 import os
 import sys
+import shutil
+
+from lazyasd import lazyobject
 
 from leyline.ast import indent, AnsiFormatter, Visitor
 from leyline.context_visitor import ContextVisitor
+
+
+@lazyobject
+def np():
+    import numpy
+    return numpy
+
+
+@lazyobject
+def sd():
+    import sounddevice
+    return sounddevice
 
 
 class SSML(ContextVisitor):
@@ -200,20 +215,43 @@ class Dictation(ContextVisitor, AnsiFormatter):
 class Recorder:
     """Manages the recording of audio."""
 
-    def __init__(self, device=None):
+    def __init__(self, device=None, columns=None, fft_low=100.0, fft_high=2000.0,
+                 gain=10.0, block_duration=0.05):
         """
         Parameters
         ----------
         device : int, optional
             The audio input device to use. If None, the user will be prompted
             for a selection.
+        columns : int, optional
+            Numbetr of columns to display the FFT with. Defaults to current
+            terminal column width.
+        fft_low : float, optional
+            Lower bound frequency [Hz] for FFT.
+        fft_high : float, optional
+            Upper bound frequency [Hz] for FFT.
+        gain : int, optional
+            FFT gain factor to apply.
+        block_duration : float, optional
+            The length of time [sec] that each recorded block should be.
         """
-        self._gradient = None
+        self._gradient = self._samplerate = self.fft_size = None
+        if columns is None:
+            columns = shutil.get_terminal_size().columns
+        self.columns = columns
+        self.fft_low = fft_low
+        self.fft_high = fft_high
+        self.gain = gain
+        self.block_duration = block_duration
+
+        self.delta_f = (fft_high - fft_low) / (columns - 1)
+        self.low_bin = int(np.floor(fft_low / self.delta_f))
+
         self._device = device
         self.device = device
 
     @property
-    def gradient():
+    def gradient(self):
         if self._gradient is not None:
             return self._gradient
         #from https://gist.github.com/maurisvh/df919538bcef391bc89f
@@ -232,24 +270,66 @@ class Recorder:
                 gradient.append('\x1b[{};{}m{}'.format(bg, fg + 10, char))
         return gradient
 
-
     @property
     def device(self):
+        """The input """
+        if self._device is None:
+            d = self.device
         return self._device
 
     @device.setter
     def device(self, val):
         if val is None:
-            import sounddevice as sd
-            info = s.query_devices()
+            info = str(sd.query_devices())
             if 'linux' in sys.platform:
                 info = '\n'.join(line for line in info.splitlines() if '(0 in' not in line)
-            print('\x1b[1mAvailable Input Devices:\x1b[0m')
+            if not info.strip():
+                print('\x1b[1mNo available input devices!\x1b[0m')
+                #self._device = self._samplerate = self.fft_size = None
+                return
+            print('Please select a mircophone.\n\x1b[1mAvailable Input Devices:\x1b[0m')
             print(info)
         while val is None:
-            s = input('device number: ')
+            print('device number: ', end='', flush=True)
+            s = input()
             try:
                 val = int(s)
             except ValueError:
                 print('please use an integer to select the input device.')
+        self._samplerate = self.fft_size = None
         self._device = val
+
+    @property
+    def samplerate(self):
+        """The sample rate for the selected input device"""
+        if self._samplerate is None:
+            sr = sd.query_devices(self.device, 'input')['default_samplerate']
+            self._samplerate = sr
+            self.fft_size = int(np.ceil(sr / self.delta_f))
+        return self._samplerate
+
+    def callback(self, indata, frames, time, status):
+        """Callback for recording via sounddevice and displaying the spectrum as the
+        recording streams.
+        """
+        if status:
+            text = ' ' + str(status) + ' '
+            print('\x1b[34;40m', text.center(self.columns, '#'),
+                  '\x1b[0m', sep='', end='\r', flush=True)
+        if any(indata):
+            magnitude = np.abs(np.fft.rfft(indata[:, 0], n=self.fft_size))
+            magnitude *= self.gain / self.fft_size
+            line = (self.gradient[int(np.clip(x, 0, 1) * (len(self.gradient) - 1))]
+                    for x in magnitude[self.low_bin:self.low_bin + self.columns])
+            print(*line, sep='', end='\x1b[0m\r', flush=True)
+        else:
+            print('no input', end='\r', flush=True)
+
+    def raw_record(self):
+        print('Press Enter to stop recording.')
+        with sd.InputStream(device=self.device, channels=1, callback=self.callback,
+                            blocksize=int(self.samplerate * self.block_duration),
+                            samplerate=self.samplerate):
+            response = True
+            while response:
+                response = input()
