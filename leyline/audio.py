@@ -1,6 +1,7 @@
 """Tools for rendering audio from a document."""
 import os
 import sys
+import queue
 import shutil
 
 from lazyasd import lazyobject
@@ -19,6 +20,12 @@ def np():
 def sd():
     import sounddevice
     return sounddevice
+
+
+@lazyobject
+def sf():
+    import soundfile
+    return soundfile
 
 
 class SSML(ContextVisitor):
@@ -215,14 +222,16 @@ class Dictation(ContextVisitor, AnsiFormatter):
 class Recorder:
     """Manages the recording of audio."""
 
-    def __init__(self, device=None, columns=None, fft_low=100.0, fft_high=2000.0,
-                 gain=10.0, block_duration=0.05):
+    def __init__(self, device=None, channels=1, columns=None, fft_low=100.0,
+                 fft_high=2000.0, gain=10.0, block_duration=0.05):
         """
         Parameters
         ----------
         device : int, optional
             The audio input device to use. If None, the user will be prompted
             for a selection.
+        channels : int, optional
+            Number of channels to record, default 1.
         columns : int, optional
             Numbetr of columns to display the FFT with. Defaults to current
             terminal column width.
@@ -243,6 +252,8 @@ class Recorder:
         self.fft_high = fft_high
         self.gain = gain
         self.block_duration = block_duration
+        self.blocks = None
+        self.channels = channels
 
         self.delta_f = (fft_high - fft_low) / (columns - 1)
         self.low_bin = int(np.floor(fft_low / self.delta_f))
@@ -317,6 +328,7 @@ class Recorder:
             print('\x1b[34;40m', text.center(self.columns, '#'),
                   '\x1b[0m', sep='', end='\r', flush=True)
         if any(indata):
+            self.blocks.put(indata.copy())
             magnitude = np.abs(np.fft.rfft(indata[:, 0], n=self.fft_size))
             magnitude *= self.gain / self.fft_size
             line = (self.gradient[int(np.clip(x, 0, 1) * (len(self.gradient) - 1))]
@@ -326,6 +338,8 @@ class Recorder:
             print('no input', end='\r', flush=True)
 
     def raw_record(self):
+        """Actually records from the microphone. Returns a queue of numpy arrays."""
+        self.blocks = queue.Queue()
         print('Press Enter to stop recording.')
         with sd.InputStream(device=self.device, channels=1, callback=self.callback,
                             blocksize=int(self.samplerate * self.block_duration),
@@ -333,3 +347,14 @@ class Recorder:
             response = True
             while response:
                 response = input()
+        return self.blocks
+
+    def record(self, filename):
+        """Records sounds and writes it to the filesystem."""
+        blocks = self.raw_record()
+        print('Writing file \x1b[' + filename + '\x1b[0m')
+        with sf.SoundFile(filename, mode='w', samplerate=int(self.samplerate),
+                          channels=self.channels, subtype='VORBIS') as f:
+            while not blocks.empty():
+                block = blocks.get()
+                f.write(block)
