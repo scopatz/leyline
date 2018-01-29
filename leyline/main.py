@@ -1,9 +1,11 @@
 """Command line interface for leyline"""
+import os
 import getpass
 import importlib
 from argparse import ArgumentParser
 
 from leyline.parser import parse
+from leyline.assets import AssetsCache
 
 
 TARGETS = {
@@ -12,6 +14,14 @@ TARGETS = {
     'dictate': ('leyline.audio', 'Dictation'),
     }
 TARGET_VISITORS = {}
+
+
+def make_assets_cache(ns):
+    """Adds an assets cache to the current namespace."""
+    os.makedirs(ns.assets_dir, exist_ok=True)
+    filename = os.path.join(ns.assets_dir, ns.assets_file)
+    print("Loading assets cache " + filename)
+    ns.assets = AssetsCache(filename)
 
 
 def render_target(tree, target, ns):
@@ -29,6 +39,12 @@ def make_argparser():
                    dest='debug', help='Enter into pdb on error.')
     p.add_argument('--polly-user', default=getpass.getuser(),
                    help='username for AWS Polly')
+    p.add_argument('--assets-dir', '--static-dir', default='_static',
+                   help='Path to assets or static directory, where large '
+                        'unique files will be stored', dest='assets_dir')
+    p.add_argument('--assets-cache', default='assets.json', dest='assets_file',
+                   help='Filename (relative to assets dir) that the assets '
+                        'cache will use to store data.')
     p.add_argument('targets', nargs='+', help='targets to render the file into: '
                    + ', '.join(sorted(TARGETS.keys())),
                    choices=TARGETS)
@@ -43,6 +59,7 @@ def main(args=None):
     with open(ns.filename, 'r') as f:
         s = f.read()
     tree = parse(s)
+    make_assets_cache(ns)
     for target in ns.targets:
         try:
             render_target(tree, target, ns)
