@@ -2,7 +2,7 @@
 import os
 import json
 import hashlib
-from collections.abc import MuatableMapping, Sequence
+from collections.abc import MutableMapping, Sequence
 
 
 class AssetsCache(MutableMapping):
@@ -29,6 +29,8 @@ class AssetsCache(MutableMapping):
 
     def load(self):
         """Loads the file into the cache."""
+        if not os.path.isfile(self.cachefile):
+            return
         with open(self.cachefile, 'r') as f:
             data = json.load(f)
         self.cache.update(data.get('cache', ()))
