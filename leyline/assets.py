@@ -8,25 +8,51 @@ from collections.abc import MuatableMapping, Sequence
 class AssetsCache(MutableMapping):
     """A cache for indexing static data on the filesystem."""
 
-    def __init__(self, filename, *args, **kwargs):
-        """Requires a filename, all other args and kwargs are
-        treated as arguments to dict().
+    def __init__(self, cachefile, srcfile, *args, **kwargs):
+        """Requires a cache filename and a srcfile that all assests come from.
+        All other args and kwargs are treated as arguments to dict().
         """
-        self._dump_mutations = True
-        self.filename = filename
+        self._dump_mutations = False
+        self.cachefile = cachefile
+        self._srcfile = self.srchash = None
+        # the cache maps md5 sums of keys to a 2-list of ['filename', {'srcfile': 'srchash'}]
         self.cache = {}
+        # maps the sources to the current MD5 hash
+        self.sources = {}
         self.load()
+        self.srcfile = srcfile
         self.update(*args, **kwargs)
+        self._dump_mutations = True
+        self.dump()
 
     def load(self):
         """Loads the file into the cache."""
-        with open(self.filename, 'r') as f:
-            self.cache.update(json.load(f))
+        with open(self.cachefile, 'r') as f:
+            data = json.load(f)
+        self.cache.update(data.get('cache', ()))
+        self.sources.update(data.get('sources', ()))
 
     def dump(self):
         """Writes the cache to the filesystem"""
-        with open(self.filename, 'w') as f:
-            json.dump(self.cache, f)
+        data = {'cache': self.cache, 'sources': self.sources}
+        with open(self.cachefile, 'w') as f:
+            json.dump(data, f)
+
+    @property
+    def srcfile(self):
+        """The path to the current source file"""
+        return self._srcfile
+
+    @srcfile.setter
+    def srcfile(self, value):
+        self._srcfile = value
+        with open(value, 'rb') as f:
+            b = f.read()
+        m = hashlib.md5(b)
+        h = self.srchash = m.hexdigest()
+        self.sources[value] = h
+        if self._dump_mutations:
+            self.dump()
 
     def hash(self, key):
         """Returns the hash of a particular key. Only strings, bytes,
@@ -53,9 +79,24 @@ class AssetsCache(MutableMapping):
 
     def gc(self):
         """Remove elements from the cache that are gone from the file system"""
-        bad = {k for k, v in self.cache.items() if not os.path.isfile(v)}
+        # find the bad entries
+        bad = set()
+        for key, (filename, sources) in self.cache.items():
+            if not os.path.isfile(filename):
+                bad.add(key)
+                continue
+            # remove sources whose hashes no longer match
+            bad_srcs = {s for s, h in sources.items() if h != self.sources.get(s, '')}
+            for s in bad_srcs:
+                del sources[s]
+            # if there are no sources for this file anymore, remove the entry.
+            if not sources:
+                bad.add(key)
+        # remove bad entries
         for b in bad:
-            del self.cache[b]
+            filename, sources = self.cache.pop(b, ['', {}])
+            if os.path.isfile(filename):
+                os.path.remove(filename)
         if self._dump_mutations:
             self.dump()
 
@@ -75,11 +116,13 @@ class AssetsCache(MutableMapping):
 
     def __getitem__(self, key):
         m = self.hash(key)
-        return self.cache[m]
+        return self.cache[m][0]
 
     def __setitem__(self, key, value):
         m = self.hash(key)
-        self.key[m] = value
+        curr = self.cache[m] = self.cache.get(m, ['', {}])
+        curr[0] = value
+        curr[1][self.srcfile] = self.srchash
         if self._dump_mutations:
             self.dump()
 

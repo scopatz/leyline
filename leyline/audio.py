@@ -152,26 +152,31 @@ class Dictation(ContextVisitor, AnsiFormatter):
     renders = 'audio'
 
     def render(self, *, tree=None, assets=None, assets_dir='.', **kwargs):
+        """Takes a dictation of the text and returns a list of filenames that
+        represent the text.
+        """
         if assets is None:
             raise ValueError('assets cannot be None, must be an isnstance '
                              'of AssetsCache')
         self.blocks = ['']
         self.visit(tree)
-        asset_key = ('dictation', '\n'.join(self.blocks))
         filenames = []
         for block in self.blocks:
             filename = self.record_block(block, assets, assets_dir)
+            if filename is None:
+                # recieved quit
+                return
             filenames.append(filename)
-
+        return filenames
 
     def record_block(self, block, assets, assets_dir):
         """Interactively records a block, returns the file name"""
         # first check if we already have a recording
         asset_key = ('dictation', block)
-        h = assets.hash(asset_key)
-        if h in assets.cache:
-            filename = assets.cache[h]
+        if asset_key in assets:
+            filename = assets[asset_key]
             print('found \x1b[1m' + filename + '\x1b[0m in cache')
+            assets[assets_key] = filename  # update src hash
             return filename
         # now make sure we can record
         if not hasattr(self, 'recorder'):
@@ -190,16 +195,18 @@ class Dictation(ContextVisitor, AnsiFormatter):
             s = None
             while not s:
                 if s is not None:
-                    print('selection not understood, please input k/d or y/n')
+                    print('selection not understood, please input k/d or y/n or q')
                 s = input()[0].lower()
-                if s not in 'kdyn':
+                if s not in 'kdynq':
                     continue
                 elif s in 'ky':
                     done = True
+                elif s == 'q':
+                    return
                 else:
                     s = ''
                     done = False
-        assets[asset_key] = basename
+        assets[asset_key] = filename
         return filename
 
     def append(self, s):

@@ -19,9 +19,9 @@ TARGET_VISITORS = {}
 def make_assets_cache(ns):
     """Adds an assets cache to the current namespace."""
     os.makedirs(ns.assets_dir, exist_ok=True)
-    filename = os.path.join(ns.assets_dir, ns.assets_file)
-    print("Loading assets cache " + filename)
-    ns.assets = AssetsCache(filename)
+    cachefile = os.path.join(ns.assets_dir, ns.assets_file)
+    print("Loading assets cache " + cachefile)
+    ns.assets = AssetsCache(cachefile, ns.filename)
 
 
 def render_target(tree, target, ns):
