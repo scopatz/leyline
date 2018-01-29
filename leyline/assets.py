@@ -19,6 +19,8 @@ class AssetsCache(MutableMapping):
         self.cache = {}
         # maps the sources to the current MD5 hash
         self.sources = {}
+        # cache keys, not stored
+        self._hashes = {}
         self.load()
         self.srcfile = srcfile
         self.update(*args, **kwargs)
@@ -58,6 +60,9 @@ class AssetsCache(MutableMapping):
         """Returns the hash of a particular key. Only strings, bytes,
         and tuples of str or bytes are allowed.
         """
+        h = self._hashes.get(key, None)
+        if h is not None:
+            return h
         m = hashlib.md5()
         if isinstance(key, str):
             m.update(key.encode())
@@ -75,7 +80,8 @@ class AssetsCache(MutableMapping):
         else:
             msg = 'Assets key {0!r} is not a str or bytes'
             raise TypeError(msg.format(key))
-        return m.hexdigest()
+        h = self._hashes[key] = m.hexdigest()
+        return h
 
     def gc(self):
         """Remove elements from the cache that are gone from the file system"""

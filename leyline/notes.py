@@ -44,9 +44,6 @@ HEADER = r"""
     captionpos=t,
 }
 
-\newcommand{\superscript}[1]{\ensuremath{^{\textrm{#1}}}}
-\newcommand{\subscript}[1]{\ensuremath{_{\textrm{#1}}}}
-
 \begin{document}
 """
 
