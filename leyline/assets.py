@@ -69,6 +69,10 @@ class AssetsCache(MutableMapping):
     def __iter__(self):
         yield from self.cache
 
+    def __contains__(self, key):
+        m = self.hash(key)
+        return m in self.cache
+
     def __getitem__(self, key):
         m = self.hash(key)
         return self.cache[m]

@@ -151,12 +151,56 @@ class Dictation(ContextVisitor, AnsiFormatter):
 
     renders = 'audio'
 
-    def render(self, *, tree=None, **kwargs):
+    def render(self, *, tree=None, assets=None, assets_dir='.', **kwargs):
+        if assets is None:
+            raise ValueError('assets cannot be None, must be an isnstance '
+                             'of AssetsCache')
         self.blocks = ['']
         self.visit(tree)
+        asset_key = ('dictation', '\n'.join(self.blocks))
+        filenames = []
         for block in self.blocks:
-            print(block)
-            print("=====")
+            filename = self.record_block(block, assets, assets_dir)
+            filenames.append(filename)
+
+
+    def record_block(self, block, assets, assets_dir):
+        """Interactively records a block, returns the file name"""
+        # first check if we already have a recording
+        asset_key = ('dictation', block)
+        h = assets.hash(asset_key)
+        if h in assets.cache:
+            filename = assets.cache[h]
+            print('found \x1b[1m' + filename + '\x1b[0m in cache')
+            return filename
+        # now make sure we can record
+        if not hasattr(self, 'recorder'):
+            self.recorder = Recorder()
+        basename = h + '.ogg'
+        filename = os.path.join(assets_dir, basename)
+        done = False
+        while not done:
+            print('Please speak the following text; '
+                  'press Enter to start recording\n\n')
+            print(block, '\n\n')
+            input()
+            self.recorder.record(filename)
+            print('would you like to \x1b[1m(k)\x1b[0meep or '
+                  '\x1b[1m(d)\x1b[0miscard this recording: ')
+            s = None
+            while not s:
+                if s is not None:
+                    print('selection not understood, please input k/d or y/n')
+                s = input()[0].lower()
+                if s not in 'kdyn':
+                    continue
+                elif s in 'ky':
+                    done = True
+                else:
+                    s = ''
+                    done = False
+        assets[asset_key] = basename
+        return filename
 
     def append(self, s):
         """Adds a string to the last block"""
@@ -352,9 +396,10 @@ class Recorder:
     def record(self, filename):
         """Records sounds and writes it to the filesystem."""
         blocks = self.raw_record()
-        print('Writing file \x1b[' + filename + '\x1b[0m')
+        print('Writing file \x1b[1m' + filename + '\x1b[0m')
         with sf.SoundFile(filename, mode='w', samplerate=int(self.samplerate),
                           channels=self.channels, subtype='VORBIS') as f:
             while not blocks.empty():
                 block = blocks.get()
                 f.write(block)
+
