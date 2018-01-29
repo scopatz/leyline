@@ -64,6 +64,7 @@ class Notes(ContextVisitor):
         outfile = basename + '.tex'
         with open(outfile, 'w') as f:
             f.write(s)
+        return True
 
     def _make_title(self):
         if 'meta' not in self.contexts:

@@ -42,6 +42,7 @@ class SSML(ContextVisitor):
         basename, _ = os.path.splitext(filename)
         outfile = basename + '.mp3'
         self._render_with_polly(blocks, outfile, polly_user)
+        return True
 
     def _render_with_polly(self, blocks, outfile, user):
         from boto3 import Session

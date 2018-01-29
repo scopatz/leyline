@@ -29,7 +29,7 @@ def render_target(tree, target, ns):
     mod = importlib.import_module(modname)
     cls = getattr(mod, clsname)
     visitor = cls()
-    visitor.render(tree=tree, **ns.__dict__)
+    return visitor.render(tree=tree, **ns.__dict__)
 
 
 def make_argparser():
@@ -62,7 +62,7 @@ def main(args=None):
     make_assets_cache(ns)
     for target in ns.targets:
         try:
-            render_target(tree, target, ns)
+            rtn = render_target(tree, target, ns)
         except Exception:
             if not ns.debug:
                 raise
@@ -72,7 +72,9 @@ def main(args=None):
             type, value, tb = sys.exc_info()
             traceback.print_exc()
             pdb.post_mortem(tb)
-
+        # check break condition
+        if rtn is None:
+            return
 
 if __name__ == '__main__':
     main()
