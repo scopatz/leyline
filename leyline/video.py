@@ -102,6 +102,7 @@ class Frame(Latex):
             pdfname = os.path.join(d, h + '.pdf')
             out = subprocess.check_call(['convert', '-density', '1080', '-antialias',
                                          '-quality', '100', pdfname + '[0]', filename])
+        assets[asset_key] = filename
         return filename
 
 
