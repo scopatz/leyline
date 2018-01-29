@@ -88,7 +88,9 @@ class Event:
 
 
 class Slide(Event):
-    """A transition event representing moving to a new slide."""
+    """A transition event representing moving to a new slide.
+    Each slide consists of a number of sub-slides.
+    """
 
     type = 'slide'
     attrs = ('title',)
