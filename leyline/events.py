@@ -26,7 +26,7 @@ class EventsVisitor(ContextVisitor):
 
     def visit_node(self, node):
         """generic vistor just adds node to current event body."""
-        self.current_event.body.append(node)
+        self.current_event.append(node)
 
     def _bodied_visit(self, node):
         """Visits each subnode in the body of the given node."""
@@ -54,6 +54,9 @@ class Event:
     def render(self, target, visitor):
         visitor.current_event = self
         return ''
+
+    def append(self, node):
+        self.body.append(node)
 
     def __str__(self):
         s = self.__class__.__name__ + '(\n'
@@ -90,9 +93,45 @@ class Slide(Event):
     type = 'slide'
     attrs = ('title',)
 
-    def __init__(self, title='', **kwargs):
+    def __init__(self, title='', body=None, start=None, duration=None, **kwargs):
         super().__init__(**kwargs)
         self.title = title
+        self.body = [[]] if body is None else body
+        self.start = [None] if start is None else start
+        self.duration = [None] if duration is None else duration
+        self.idx = 0  # which subslide index new nodes should be applied to
+
+    def append(self, node):
+        while len(self.body) < self.idx + 1:
+            self.body.append([])
+            self.start.append(None)
+            self.duration.append(None)
+        self.body[self.idx].append(node)
+
+
+class Subslide(Event):
+    """Event that modifies the subslide index on the current slide."""
+
+    type = 'subslide'
+    attrs = ('idx',)
+
+    def __init__(self, idx=None, **kwargs):
+        self.idx = idx
+        self.body = self.start = self.duration = None
+
+    def render(self, target, visitor):
+        # this event should not add itself to the visitor
+        for event in reversed(visitor.events):
+            if isinstance(event, Slide):
+                break
+        else:
+            raise ValueError('subslide before slide')
+        idx = event.idx + 1 if self.idx is None else self.idx
+        envent.idx = idx
+        return ''
+
+    def append(self, node):
+        pass
 
 
 class Sleep(Event):
