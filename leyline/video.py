@@ -1,6 +1,7 @@
 """Tools for rendering leyline ASTs as video"""
 import os
 import tempfile
+import itertools
 import subprocess
 
 from lazyasd import lazyobject
@@ -150,12 +151,19 @@ class Video(EventsVisitor):
         self.visit(tree)  # fill events
         slides = [event for event in self.events if isinstance(event, Slide)]
         basename, _ = os.path.splitext(filename)
-        self.render_audio(slides, basename, assets, assets_dir)
+        oggfile = self.render_audio(slides, basename, assets, assets_dir)
+        frames = self.render_frames(slides, assets, assets_dir)
+        mp4file = self.render_video(slides, basename, oggfile, frames)
+        return mp4file
 
-    def render_audio(slides, filename, assets, assets_dir):
-        """Renders the audio track for a slide."""
+    def render_audio(self, slides, basename, assets, assets_dir):
+        """Renders the audio track for a slide. Returns the path
+        to the audio file.
+        """
         samplerate = 44100
         channels = 2
+        parbreakdur = 1.3  # number of seconds to break between paragraphs
+        parbreak = np.zeros((samplerate*parbreakdur, channels), dtype='float64')
         oggfile = basename + '.ogg'
         track = sf.SoundFile(oggfile, 'w+', samplerate=samplerate,
                              channels=channels, format='OGG', subtype='VORBIS')
@@ -177,5 +185,57 @@ class Video(EventsVisitor):
                                          assets_dir=assets_dir)
                 for fname in files:
                     dur += append_to_track(track, fname)
+                    track.write(parbreak)
+                    dur += parbreakdur
+                # the following must come at the very end of every subslide
+                slide.duration[i] = dur
+                clock += dur
         track.flush()
         track.close()
+        return oggfile
+
+    def render_frames(self, slides, assets, assets_dir):
+        """Render each frame and return a list of list of filename
+        matching the slide/subslide arrangement.
+        """
+        framer = getattr(self, 'framer', None)
+        if framer is None:
+            framer = self.framer = Framer()
+        # render the actual frames
+        slidesframes = []
+        for slide in slides:
+            slideframes = []
+            slidesframes.append(slideframes)
+            body = []
+            for i, subslide in enumerate(slide.body):
+                if not subslide:
+                    slideframes.append(None)
+                    continue
+                body.extend(subslide)
+                n0 = body[0]
+                subdoc = Document(body=body, lineno=n0.lineno,
+                                  column=n0.column)
+                fname = framer.render(tree=subdoc, assets=assets,
+                                      assets_dir=assets_dir, title=slide.title)
+                slideframes.append(fname)
+        return slidesframes
+
+    def render_video(self, slides, basename, oggfile, frames):
+        """Renders video from slide timings, an audio file, and frame files."""
+        s = 'ffconcat version 1.0\n'
+        t = 'file {0}\nduration {1}\n'
+        for slide, framelist in zip(slides, frames):
+            itr = zip(slide.body, slide.start, slide.duration, framelist)
+            for subslide, start, duration, frame in itr:
+                if not subslide:
+                    continue
+                s += t.format(frame, duration)
+        # write the ffmpeg concat demuxer file
+        ffconcat = basename + '.ffconcat'
+        with open(ffconcat, 'w') as f:
+            f.write(s)
+        # render the video with ffmpeg
+        mp4file = basename + '.mp4'
+        subprocess.check_call(['ffmpeg', '-i', ffconcat, '-i', oggfile,
+                               '-vf', 'fps=24', '-shortest', mp4file])
+        return mp4file
