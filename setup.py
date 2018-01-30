@@ -30,6 +30,9 @@ setup_kwargs = {
 
 if HAVE_SETUPTOOLS:
     setup_kwargs['install_requires'] = ['ply']
+    setup_kwargs['entry_points'] = {
+        'pygments.lexers': ['leyline = leyline.pyghooks:LeylineLexer'],
+        }
 
 
 if __name__ == '__main__':
