@@ -252,6 +252,21 @@ class Dictation(ContextVisitor, AnsiFormatter):
     def visit_comment(self, node):
         return ''
 
+    def visit_equation(self, node):
+        s = '$$$\n' + node.text.strip() + '\n$$$\n'
+        self.append(s)
+        return s
+
+    def visit_inlinecode(self, node):
+        s = '`' + node.text + '`'
+        self.append(s)
+        return s
+
+    def visit_inlinemath(self, node):
+        s = '$' + node.text + '$'
+        self.append(s)
+        return s
+
     def visit_with(self, node):
         super().visit_with(node)
         return ''

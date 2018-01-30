@@ -173,7 +173,7 @@ class Video(EventsVisitor):
                              channels=channels, format='OGG', subtype='VORBIS')
         dictation = getattr(self, 'dictation', None)
         if dictation is None:
-            dictation = self.dictation = Dictation()
+            dictation = self.dictation = Dictation(contexts=self.contexts)
         clock = 0.0
         # record audio for slides by recording audio for subslides
         for slide in slides:
@@ -206,7 +206,7 @@ class Video(EventsVisitor):
         """
         framer = getattr(self, 'framer', None)
         if framer is None:
-            framer = self.framer = Frame()
+            framer = self.framer = Frame(contexts=self.contexts)
         # render the actual frames
         slidesframes = []
         for slide in slides:

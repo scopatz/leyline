@@ -177,7 +177,7 @@ class List(Node):
         if isinstance(self.bullets, str):
             bullets = itertools.repeat(self.bullets)
         elif isinstance(self.bullets, int):
-            bullets = range(1, n+1)
+            bullets = range(1, self.bullets+1)
         else:
             bullets = self.bullets
         yield from zip(bullets, self.items)
