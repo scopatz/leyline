@@ -120,11 +120,13 @@ class Frame(Latex):
             texname = os.path.join(d, h + '.tex')
             with open(texname, 'w') as f:
                 f.write(s)
-            out = subprocess.check_call(['pdflatex', texname], cwd=d)
+            subprocess.check_call(['pdflatex', texname], cwd=d)
             pdfname = os.path.join(d, h + '.pdf')
-            out = subprocess.check_call(['convert', '-density', '1080',
-                                         '-antialias', '-quality', '100',
-                                         pdfname + '[0]', filename])
+            subprocess.check_call([
+                'gs', '-dNOPAUSE', '-sDEVICE=jpeg', '-dFirstPage=1',
+                '-dLastPage=1', '-sOutputFile=' + filename,
+                '-dJPEGQ=100', '-dFIXEDMEDIA', '-dPDFFitPage', '-g1920x1080',
+                '-q', pdfname, '-c', 'quit'])
         assets[asset_key] = filename
         return filename
 
@@ -234,12 +236,13 @@ class Video(EventsVisitor):
                 if not subslide:
                     continue
                 s += t.format(frame, duration)
+        s += 'file ' + frame + '\n'  # need to copy last frame to prevent cutoff
         # write the ffmpeg concat demuxer file
         ffconcat = basename + '.ffconcat'
         with open(ffconcat, 'w') as f:
             f.write(s)
         # render the video with ffmpeg
         mp4file = basename + '.mp4'
-        subprocess.check_call(['ffmpeg', '-i', ffconcat, '-i', oggfile,
+        subprocess.check_call(['ffmpeg', '-y', '-i', ffconcat, '-i', oggfile,
                                '-vf', 'fps=24', '-shortest', mp4file])
         return mp4file
