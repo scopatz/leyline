@@ -51,6 +51,12 @@ class Event:
         self.start = start
         self.duration = duration
 
+    def render_latex(self, visitor):
+        return '\\phantom{}'
+
+    def render_notes(self, visitor):
+        return '\\phantom{}'
+
     def render(self, target, visitor):
         if not hasattr(visitor, 'events'):
             return ''
