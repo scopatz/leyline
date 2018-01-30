@@ -120,7 +120,7 @@ class Frame(Latex):
             texname = os.path.join(d, h + '.tex')
             with open(texname, 'w') as f:
                 f.write(s)
-            out = subprocess.check_call(['pdflatex', texname])
+            out = subprocess.check_call(['pdflatex', texname], cwd=d)
             pdfname = os.path.join(d, h + '.pdf')
             out = subprocess.check_call(['convert', '-density', '1080',
                                          '-antialias', '-quality', '100',
@@ -152,6 +152,8 @@ class Video(EventsVisitor):
         slides = [event for event in self.events if isinstance(event, Slide)]
         basename, _ = os.path.splitext(filename)
         oggfile = self.render_audio(slides, basename, assets, assets_dir)
+        if oggfile is None:
+            return
         frames = self.render_frames(slides, assets, assets_dir)
         mp4file = self.render_video(slides, basename, oggfile, frames)
         return mp4file
@@ -183,6 +185,8 @@ class Video(EventsVisitor):
                                   column=n0.column)
                 files = dictation.render(tree=subdoc, assets=assets,
                                          assets_dir=assets_dir)
+                if files is None:
+                    return
                 for fname in files:
                     dur += append_to_track(track, fname)
                     track.write(parbreak)

@@ -471,6 +471,7 @@ class AnsiFormatter(Visitor):
         return s
 
     def visit_plaintext(self, node):
+        print("ansi", node.text)
         return node.text
 
     def visit_comment(self, node):

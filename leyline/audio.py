@@ -162,6 +162,7 @@ class Dictation(ContextVisitor, AnsiFormatter):
         self.blocks = ['']
         self.visit(tree)
         filenames = []
+        print("blocks", self.blocks)
         for block in self.blocks:
             filename = self.record_block(block, assets, assets_dir)
             if filename is None:
@@ -192,8 +193,9 @@ class Dictation(ContextVisitor, AnsiFormatter):
             print(block, '\n\n')
             input()
             self.recorder.record(filename)
-            print('would you like to \x1b[1m(k)\x1b[0meep or '
-                  '\x1b[1m(d)\x1b[0miscard this recording: ')
+            print('Would you like to \x1b[1m(k)\x1b[0meep, '
+                  '\x1b[1m(d)\x1b[0miscard, or '
+                  '\x1b[1m(q)\x1b[0muit: ', end='', flush=True)
             s = None
             while not s:
                 if s is not None:
@@ -206,7 +208,6 @@ class Dictation(ContextVisitor, AnsiFormatter):
                 elif s == 'q':
                     return
                 else:
-                    s = ''
                     done = False
         assets[asset_key] = filename
         return filename
@@ -220,6 +221,11 @@ class Dictation(ContextVisitor, AnsiFormatter):
         paragraphs = s.split('\n\n')
         self.append(paragraphs.pop(0))
         self.blocks.extend(paragraphs)
+
+    def visit_plaintext(self, node):
+        s = node.text
+        self.append_paragraphs(s)
+        return s
 
     def visit_textblock(self, node):
         s = self._bodied_visit(node)
@@ -380,7 +386,7 @@ class Recorder:
             text = ' ' + str(status) + ' '
             print('\x1b[34;40m', text.center(self.columns, '#'),
                   '\x1b[0m', sep='', end='\r', flush=True)
-        if any(indata):
+        if indata.any():
             self.blocks.put(indata.copy())
             magnitude = np.abs(np.fft.rfft(indata[:, 0], n=self.fft_size))
             magnitude *= self.gain / self.fft_size
