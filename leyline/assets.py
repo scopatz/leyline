@@ -104,7 +104,7 @@ class AssetsCache(MutableMapping):
         for b in bad:
             filename, sources = self.cache.pop(b, ['', {}])
             if os.path.isfile(filename):
-                os.path.remove(filename)
+                os.remove(filename)
         if self._dump_mutations:
             self.dump()
 

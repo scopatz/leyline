@@ -126,6 +126,7 @@ class Frame(Latex):
                 'gs', '-dNOPAUSE', '-sDEVICE=jpeg', '-dFirstPage=1',
                 '-dLastPage=1', '-sOutputFile=' + filename,
                 '-dJPEGQ=100', '-dFIXEDMEDIA', '-dPDFFitPage', '-g1920x1080',
+                '-dTextAlphaBits=4', '-dGraphicsAlphaBits=4',
                 '-q', pdfname, '-c', 'quit'])
         assets[asset_key] = filename
         return filename
