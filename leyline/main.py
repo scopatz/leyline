@@ -10,6 +10,7 @@ from leyline.events import EVENTS_CTX
 
 
 TARGETS = {
+    'gc': ('leyline.assets', 'GC'),
     'notes': ('leyline.notes', 'Notes'),
     'polly': ('leyline.audio', 'SSML'),
     'dictate': ('leyline.audio', 'Dictation'),

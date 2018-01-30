@@ -40,7 +40,7 @@ class AssetsCache(MutableMapping):
         """Writes the cache to the filesystem"""
         data = {'cache': self.cache, 'sources': self.sources}
         with open(self.cachefile, 'w') as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=' ', sort_keys=True)
 
     @property
     def srcfile(self):
@@ -157,3 +157,16 @@ class AssetsCache(MutableMapping):
         self.cache.clear()
         if self._dump_mutations:
             self.dump()
+
+
+class GC:
+    """Fake AST visitor that doesn't actually walk nodes, but does
+    clean up garbage when rendered.
+    """
+
+    def __init__(self, **kwargs):
+        pass
+
+    def render(self, assets=None, **kwargs):
+        assets.gc()
+        return True

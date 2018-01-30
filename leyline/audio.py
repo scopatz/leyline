@@ -177,7 +177,7 @@ class Dictation(ContextVisitor, AnsiFormatter):
         if asset_key in assets:
             filename = assets[asset_key]
             print('found \x1b[1m' + filename + '\x1b[0m in cache')
-            assets[assets_key] = filename  # update src hash
+            assets[asset_key] = filename  # update src hash
             return filename
         # now make sure we can record
         if not hasattr(self, 'recorder'):
@@ -428,6 +428,9 @@ def append_to_track(track, filename):
     Returns the length of time of the file that was added in seconds.
     """
     data, sr = sf.read(filename, always_2d=True)
+    if data.shape[1] == 1:
+        # got mono data, convert to stereo
+        data = np.concatenate([data, data], axis=1)
     dur = float(data.shape[0] / sr)
     if sr != track.samplerate:
         # todo: add resampling via scipy.signal.resample
