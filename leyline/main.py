@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 
 from leyline.parser import parse
 from leyline.assets import AssetsCache
+from leyline.events import EVENTS_CTX
 
 
 TARGETS = {
@@ -29,7 +30,7 @@ def render_target(tree, target, ns):
     modname, clsname = TARGETS[target]
     mod = importlib.import_module(modname)
     cls = getattr(mod, clsname)
-    visitor = cls()
+    visitor = cls(contexts=ns.contexts)
     return visitor.render(tree=tree, **ns.__dict__)
 
 
@@ -61,6 +62,7 @@ def main(args=None):
         s = f.read()
     tree = parse(s)
     make_assets_cache(ns)
+    ns.contexts = {'ctx': EVENTS_CTX}
     for target in ns.targets:
         try:
             rtn = render_target(tree, target, ns)

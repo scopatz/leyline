@@ -111,9 +111,9 @@ class Frame(Latex):
         if asset_key in assets:
             filename = assets[asset_key]
             print('found \x1b[1m' + filename + '\x1b[0m in cache')
-            assets[assets_key] = filename  # update src hash
+            assets[asset_key] = filename  # update src hash
             return filename
-        h = self.hash(asset_key)
+        h = assets.hash(asset_key)
         basename = h + '.jpg'
         filename = os.path.join(assets_dir, basename)
         with tempfile.TemporaryDirectory(prefix='frame-' + h) as d:
@@ -129,7 +129,7 @@ class Frame(Latex):
         return filename
 
     def _make_title(self):
-        title = getattr(self, title, None)
+        title = getattr(self, 'title', None)
         if title is None:
             return ''
         return '\\frametitle{' + title + '}\n'
@@ -163,9 +163,9 @@ class Video(EventsVisitor):
         samplerate = 44100
         channels = 2
         parbreakdur = 1.3  # number of seconds to break between paragraphs
-        parbreak = np.zeros((samplerate*parbreakdur, channels), dtype='float64')
+        parbreak = np.zeros((int(samplerate*parbreakdur), channels), dtype='float64')
         oggfile = basename + '.ogg'
-        track = sf.SoundFile(oggfile, 'w+', samplerate=samplerate,
+        track = sf.SoundFile(oggfile, 'w', samplerate=samplerate,
                              channels=channels, format='OGG', subtype='VORBIS')
         dictation = getattr(self, 'dictation', None)
         if dictation is None:
@@ -200,7 +200,7 @@ class Video(EventsVisitor):
         """
         framer = getattr(self, 'framer', None)
         if framer is None:
-            framer = self.framer = Framer()
+            framer = self.framer = Frame()
         # render the actual frames
         slidesframes = []
         for slide in slides:

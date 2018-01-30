@@ -129,7 +129,7 @@ class Subslide(Event):
         else:
             raise ValueError('subslide before slide')
         idx = event.idx + 1 if self.idx is None else self.idx
-        envent.idx = idx
+        event.idx = idx
         return ''
 
     def append(self, node):

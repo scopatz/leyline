@@ -182,6 +182,7 @@ class Dictation(ContextVisitor, AnsiFormatter):
         # now make sure we can record
         if not hasattr(self, 'recorder'):
             self.recorder = Recorder()
+        h = assets.hash(asset_key)
         basename = h + '.ogg'
         filename = os.path.join(assets_dir, basename)
         done = False
