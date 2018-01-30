@@ -274,7 +274,7 @@ class Dictation(ContextVisitor, AnsiFormatter):
 class Recorder:
     """Manages the recording of audio."""
 
-    def __init__(self, device=None, channels=1, columns=None, fft_low=100.0,
+    def __init__(self, device=None, channels=2, columns=None, fft_low=100.0,
                  fft_high=2000.0, gain=10.0, block_duration=0.05):
         """
         Parameters
@@ -283,7 +283,7 @@ class Recorder:
             The audio input device to use. If None, the user will be prompted
             for a selection.
         channels : int, optional
-            Number of channels to record, default 1.
+            Number of channels to record, default 2.
         columns : int, optional
             Numbetr of columns to display the FFT with. Defaults to current
             terminal column width.
@@ -393,7 +393,7 @@ class Recorder:
         """Actually records from the microphone. Returns a queue of numpy arrays."""
         self.blocks = queue.Queue()
         print('Press Enter to stop recording.')
-        with sd.InputStream(device=self.device, channels=1, callback=self.callback,
+        with sd.InputStream(device=self.device, channels=2, callback=self.callback,
                             blocksize=int(self.samplerate * self.block_duration),
                             samplerate=self.samplerate):
             response = True
@@ -411,3 +411,16 @@ class Recorder:
                 block = blocks.get()
                 f.write(block)
 
+
+def append_to_track(track, filename):
+    """Takes an open SoundFile and appends another file to it.
+    Returns the length of time of the file that was added in seconds.
+    """
+    data, sr = sf.read(filename)
+    dur = float(data.shape[0] / sr)
+    if sr != track.samplerate:
+        # todo: add resampling via scipy.signal.resample
+        # see https://github.com/librosa/librosa/blob/3e23d5b5cf9190e8aab7611ba18184bf5a839f9a/librosa/core/audio.py#L279
+        raise RuntimeError('Cannot append with different samplerate!')
+    track.write(data)
+    return dur
