@@ -4,8 +4,7 @@ import os
 from leyline.latex import Latex
 
 
-HEADER = r"""
-\documentclass[12pt]{article}
+HEADER = r"""\documentclass[12pt]{article}
 \usepackage{color}
 \usepackage{graphicx}
 \usepackage{booktabs} % nice rules for tables

@@ -52,6 +52,8 @@ class Event:
         self.duration = duration
 
     def render(self, target, visitor):
+        if not hasattr(visitor, 'events'):
+            return ''
         visitor.current_event = self
         return ''
 
@@ -123,6 +125,8 @@ class Subslide(Event):
 
     def render(self, target, visitor):
         # this event should not add itself to the visitor
+        if not hasattr(visitor, 'events'):
+            return ''
         for event in reversed(visitor.events):
             if isinstance(event, Slide):
                 break
