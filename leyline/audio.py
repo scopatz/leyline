@@ -162,7 +162,6 @@ class Dictation(ContextVisitor, AnsiFormatter):
         self.blocks = ['']
         self.visit(tree)
         filenames = []
-        print("blocks", self.blocks)
         for block in self.blocks:
             filename = self.record_block(block, assets, assets_dir)
             if filename is None:
@@ -281,7 +280,7 @@ class Dictation(ContextVisitor, AnsiFormatter):
 class Recorder:
     """Manages the recording of audio."""
 
-    def __init__(self, device=None, channels=2, columns=None, fft_low=100.0,
+    def __init__(self, device=None, columns=None, fft_low=100.0,
                  fft_high=2000.0, gain=10.0, block_duration=0.05):
         """
         Parameters
@@ -289,8 +288,6 @@ class Recorder:
         device : int, optional
             The audio input device to use. If None, the user will be prompted
             for a selection.
-        channels : int, optional
-            Number of channels to record, default 2.
         columns : int, optional
             Numbetr of columns to display the FFT with. Defaults to current
             terminal column width.
@@ -303,7 +300,7 @@ class Recorder:
         block_duration : float, optional
             The length of time [sec] that each recorded block should be.
         """
-        self._gradient = self._samplerate = self.fft_size = None
+        self._gradient = self._samplerate = self._channels = self.fft_size = None
         if columns is None:
             columns = shutil.get_terminal_size().columns
         self.columns = columns
@@ -312,7 +309,6 @@ class Recorder:
         self.gain = gain
         self.block_duration = block_duration
         self.blocks = None
-        self.channels = channels
 
         self.delta_f = (fft_high - fft_low) / (columns - 1)
         self.low_bin = int(np.floor(fft_low / self.delta_f))
@@ -378,6 +374,13 @@ class Recorder:
             self.fft_size = int(np.ceil(sr / self.delta_f))
         return self._samplerate
 
+    @property
+    def channels(self):
+        if self._channels is None:
+            c = sd.query_devices(self.device, 'input')['max_input_channels']
+            self._channels = c
+        return self._channels
+
     def callback(self, indata, frames, time, status):
         """Callback for recording via sounddevice and displaying the spectrum as the
         recording streams.
@@ -400,7 +403,8 @@ class Recorder:
         """Actually records from the microphone. Returns a queue of numpy arrays."""
         self.blocks = queue.Queue()
         print('Press Enter to stop recording.')
-        with sd.InputStream(device=self.device, channels=2, callback=self.callback,
+        with sd.InputStream(device=self.device, channels=self.channels,
+                            callback=self.callback,
                             blocksize=int(self.samplerate * self.block_duration),
                             samplerate=self.samplerate):
             response = True
@@ -423,7 +427,7 @@ def append_to_track(track, filename):
     """Takes an open SoundFile and appends another file to it.
     Returns the length of time of the file that was added in seconds.
     """
-    data, sr = sf.read(filename)
+    data, sr = sf.read(filename, always_2d=True)
     dur = float(data.shape[0] / sr)
     if sr != track.samplerate:
         # todo: add resampling via scipy.signal.resample
