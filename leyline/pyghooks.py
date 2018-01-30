@@ -65,7 +65,10 @@ class LeylineLexer(RegexLexer):
             (r"(\$)([^\n\$\\]*(?:\\.[^\n\$\\]*)*)(\$)",
              bygroups(String, using(TexLexer), String)),
             # escape chars
-            (r'{%}|{%|%}|[{][{]|[}][}]', String.Escape),
+            (r'{%}|{%|%}', String.Escape),
+            # incorporeal macros
+            (r'([{][{])(.*?)([}][}])',
+             bygroups(String.Escape, using(PythonLexer), String.Escape)),
             # strikethrough
             (r'--.*?--', Generic.Deleted),
             # bold
@@ -88,8 +91,10 @@ class LeylineLexer(RegexLexer):
             (r'(table)(::)', bygroups(Keyword.Reserved, Operator), 'tableblock'),
             # figure
             (r'(figure)(::)', bygroups(Keyword.Reserved, Operator)),
+            # list bullets
+            (r'([ \t]*)((?:[-*]|\d+\.) )+', String.Escape),
             # plain text
-            (r'[^-\n#`${}%*~_^:]+', Text),
+            (r'[^\n#`${}%*^]+', Text),
             ],
         # go into python mode for with block
         'withblock': [
