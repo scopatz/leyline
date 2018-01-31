@@ -157,9 +157,9 @@ class Slides(Latex):
         basename, _ = os.path.splitext(filename)
         texfile = basename + '-slides.tex'
         pdffile = basename + '-slides.pdf'
-        with open(texname, 'w') as f:
+        with open(texfile, 'w') as f:
             f.write(s)
-        subprocess.check_call(['pdflatex', texname])
+        subprocess.check_call(['pdflatex', texfile])
         return pdffile
 
     def visit_document(self, node):
