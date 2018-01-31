@@ -101,6 +101,18 @@ FOOTER = r"""
 """
 
 
+def linkpath(path):
+    """finds a path to link in, whether it is a file or a directory."""
+    d, p = os.path.split(path)
+    if not d:
+        # must be a file, since no directory
+        return path
+    # find top-most directory
+    while d:
+        d, p = os.path.split(d)
+    return p
+
+
 class Frame(Latex):
     """Renders a video frame via the LaTeX Beamer package."""
 
@@ -112,6 +124,7 @@ class Frame(Latex):
         Returns the filename.
         """
         self.title = title
+        self.linkpaths = []
         s = self.visit(tree)
         asset_key = ('frame', s)
         if asset_key in assets:
@@ -123,6 +136,11 @@ class Frame(Latex):
         basename = h + '.jpg'
         filename = os.path.join(assets_dir, basename)
         with tempfile.TemporaryDirectory(prefix='frame-' + h) as d:
+            # create symlinks
+            for linkpath in self.linkpaths:
+                os.symlink(os.path.abspath(linkpath), os.path.join(d, linkpath),
+                           target_is_directory=os.path.isdir(linkpath))
+            # write tex
             texname = os.path.join(d, h + '.tex')
             with open(texname, 'w') as f:
                 f.write(s)
@@ -147,6 +165,14 @@ class Frame(Latex):
         body = super().visit_document(node)
         s = HEADER + self._make_title() + body + FOOTER
         return s
+
+    def visit_figure(self, node):
+        rtn = super().visit_figure(node)
+        if os.path.isabs(node.path):
+            pass
+        else:
+            self.linkpaths.append(linkpath(node.path))
+        return rtn
 
 
 class Slides(Latex):
