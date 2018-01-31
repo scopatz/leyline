@@ -5,7 +5,7 @@ from leyline.latex import Latex
 
 
 HEADER = r"""\documentclass[12pt]{article}
-\usepackage{color}
+\usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{booktabs} % nice rules for tables
 \usepackage{microtype} % if using PDF
@@ -19,6 +19,7 @@ HEADER = r"""\documentclass[12pt]{article}
 \DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
 
 \definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
 \lstset{
     language={Python},
     tabsize=4,

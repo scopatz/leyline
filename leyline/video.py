@@ -32,7 +32,7 @@ def RE_EMPTY_FRAME():
 
 HEADER = r"""
 \documentclass[aspectratio=169]{beamer}
-\usepackage{color}
+\usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{booktabs} % nice rules for tables
 \usepackage{microtype} % if using PDF
