@@ -143,6 +143,31 @@ class Frame(Latex):
         return s
 
 
+class Slides(Latex):
+    """Renders a slide deck via the LaTeX Beamer package. This is used for previewing
+    how the video will look.
+    """
+
+    renders = 'slides'
+
+    def render(self, *, tree=None, filename=None, **kwargs):
+        """Renders the slide deck and returns the filename.
+        """
+        s = self.visit(tree)
+        basename, _ = os.path.splitext(filename)
+        texfile = basename + '-slides.tex'
+        pdffile = basename + '-slides.pdf'
+        with open(texname, 'w') as f:
+            f.write(s)
+        subprocess.check_call(['pdflatex', texname])
+        return pdffile
+
+    def visit_document(self, node):
+        body = super().visit_document(node)
+        s = HEADER + body + FOOTER
+        return s
+
+
 class Video(EventsVisitor):
     """Renders a movie for a tree."""
 

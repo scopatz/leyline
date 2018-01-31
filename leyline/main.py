@@ -14,6 +14,7 @@ TARGETS = {
     'notes': ('leyline.notes', 'Notes'),
     'polly': ('leyline.audio', 'SSML'),
     'dictate': ('leyline.audio', 'Dictation'),
+    'slides': ('leyline.video', 'Slides'),
     'video': ('leyline.video', 'Video'),
     }
 TARGET_VISITORS = {}

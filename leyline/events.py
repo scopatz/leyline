@@ -118,6 +118,10 @@ class Slide(Event):
             self.duration.append(None)
         self.body[self.idx].append(node)
 
+    def render_slides(self, visitor):
+        title = self.title or ''
+        return '\\end{frame}\n\\begin{frame}\n\\frametitle{' + title + '}\n'
+
 
 class Subslide(Event):
     """Event that modifies the subslide index on the current slide."""
