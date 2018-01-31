@@ -1,5 +1,6 @@
 """Tools for rendering leyline ASTs as video"""
 import os
+import re
 import tempfile
 import itertools
 import subprocess
@@ -22,6 +23,11 @@ def np():
 def sf():
     import soundfile
     return soundfile
+
+
+@lazyobject
+def RE_EMPTY_FRAME():
+    return re.compile(r'\\begin{frame}\s*\\end{frame}', re.DOTALL)
 
 
 HEADER = r"""
@@ -165,6 +171,7 @@ class Slides(Latex):
     def visit_document(self, node):
         body = super().visit_document(node)
         s = HEADER + body + FOOTER
+        s = RE_EMPTY_FRAME.sub('', s)
         return s
 
 
@@ -190,16 +197,16 @@ class Video(EventsVisitor):
         """Renders the audio track for a slide. Returns the path
         to the audio file.
         """
-        samplerate = 44100
+        dictation = getattr(self, 'dictation', None)
+        if dictation is None:
+            dictation = self.dictation = Dictation(contexts=self.contexts)
+        samplerate = int(dictation.recorder.samplerate)
         channels = 2
         parbreakdur = 1.3  # number of seconds to break between paragraphs
         parbreak = np.zeros((int(samplerate*parbreakdur), channels), dtype='float64')
         oggfile = basename + '.ogg'
         track = sf.SoundFile(oggfile, 'w', samplerate=samplerate,
                              channels=channels, format='OGG', subtype='VORBIS')
-        dictation = getattr(self, 'dictation', None)
-        if dictation is None:
-            dictation = self.dictation = Dictation(contexts=self.contexts)
         clock = 0.0
         # record audio for slides by recording audio for subslides
         for slide in slides:

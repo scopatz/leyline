@@ -151,6 +151,7 @@ class Dictation(ContextVisitor, AnsiFormatter):
     """
 
     renders = 'audio'
+    _recorder = None
 
     def render(self, *, tree=None, assets=None, assets_dir='.', **kwargs):
         """Takes a dictation of the text and returns a list of filenames that
@@ -180,8 +181,6 @@ class Dictation(ContextVisitor, AnsiFormatter):
             assets[asset_key] = filename  # update src hash
             return filename
         # now make sure we can record
-        if not hasattr(self, 'recorder'):
-            self.recorder = Recorder()
         h = assets.hash(asset_key)
         basename = h + '.ogg'
         filename = os.path.join(assets_dir, basename)
@@ -210,6 +209,12 @@ class Dictation(ContextVisitor, AnsiFormatter):
                     done = False
         assets[asset_key] = filename
         return filename
+
+    @property
+    def recorder(self):
+        if self._recorder is None:
+            self._recorder = Recorder()
+        return self._recorder
 
     def append(self, s):
         """Adds a string to the last block"""
