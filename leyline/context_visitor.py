@@ -29,6 +29,13 @@ class ContextVisitor(Visitor):
 
     If no render method is found on the object, the object itself is
     returned.
+
+    If the object evaluated by the incorporeal macro is callable,
+    it will be called (with no arguments) prior and the return value
+    will be rendered.  This allows functions and classes to be
+    used directly, rather than having to call or instantiate them explicitly
+    in the macro.  For example, {{myfactory}} is equivalent to {{myfactory()}}
+    and {{MyFactory}} is the same as {{MyFactory()}}
     """
 
     def __init__(self, *, default='ctx', contexts=(), **kwargs):
@@ -54,6 +61,8 @@ class ContextVisitor(Visitor):
 
     def visit_incorporealmacro(self, node):
         obj = eval(node.text, self.contexts[self.default])
+        if callable(obj):
+            obj = obj()
         # see if there is a method specifically for this renderer
         if self.renders is not None:
             meth = getattr(obj, 'render_' + self.renders, None)
