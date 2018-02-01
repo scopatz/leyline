@@ -150,6 +150,11 @@ class Underline(Node):
     attrs = (('body', list),)
 
 
+class URL(Node):
+
+    attrs = (('text', ''),)
+
+
 class RenderFor(Node):
     """Include the body only if rendering one of the specified
     targets. Skip this body otherwise.
@@ -313,6 +318,7 @@ class PrettyFormatter(Visitor):
     visit_equation = _textual_node
     visit_inlinemath = _textual_node
     visit_incorporealmacro = _textual_node
+    visit_url = _textual_node
 
     def _code_node(self, node):
         s = node.__class__.__name__
@@ -476,7 +482,9 @@ class AnsiFormatter(Visitor):
         return s
 
     def visit_plaintext(self, node):
-        print("ansi", node.text)
+        return node.text
+
+    def visit_url(self, node):
         return node.text
 
     def visit_comment(self, node):

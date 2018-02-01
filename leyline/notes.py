@@ -16,7 +16,15 @@ HEADER = r"""\documentclass[12pt]{article}
 \usepackage[export]{adjustbox}
 \usepackage{amssymb}
 \usepackage{amsmath}
+\usepackage{hyperref}
 \DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=blue,
+}
 
 \definecolor{listinggray}{gray}{0.9}
 \definecolor{lbcolor}{rgb}{0.9,0.9,0.9}

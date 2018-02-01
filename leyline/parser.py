@@ -11,7 +11,7 @@ from leyline.lexer import Lexer
 from leyline.ast import (Node, Document, PlainText, TextBlock, Comment, CodeBlock,
     Bold, Italics, Underline, Strikethrough, With, RenderFor, List, Table,
     InlineCode, Equation, InlineMath, CorporealMacro, IncorporealMacro, Figure,
-    Superscript, Subscript)
+    Superscript, Subscript, URL)
 
 
 class LeylineSyntaxError(Exception):
@@ -90,7 +90,7 @@ class Parser(object):
                      'doubleunder', 'rend', 'with', 'indent', 'dedent',
                      'listbullet', 'table', 'comment', 'multilinecomment',
                      'codeblock', 'inlinecode', 'multilinemath', 'inlinemath',
-                     'doublelbrace', 'doublerbrace', 'lbracepercent',
+                     'doublelbrace', 'doublerbrace', 'lbracepercent', 'url',
                      'percentrbrace', 'figure', 'lbracecaret', 'lbraceunder']
         for rule in tok_rules:
             self._tok_rule(rule)
@@ -343,6 +343,15 @@ class Parser(object):
                               name=name.strip(), args=args.strip(), body=p[4])
 
     #
+    # url
+    #
+
+    def p_url(self, p):
+        """url : url_tok"""
+        t = p[1]
+        p[0] = URL(text=t.value, lineno=t.lineno, column=t.column)
+
+    #
     # rend blocks
     #
 
@@ -580,7 +589,8 @@ class Parser(object):
         p[0] = PlainText(text=t.value, lineno=t.lineno, column=t.column)
 
     def p_special_entry(self, p):
-        """special_entry : inlinecode
+        """special_entry : url
+                         | inlinecode
                          | inlinemath
                          | incorporealmacro
         """

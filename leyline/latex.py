@@ -59,6 +59,9 @@ class Latex(ContextVisitor):
     def visit_inlinemath(self, node):
         return '$' + node.text + '$'
 
+    def visit_url(self, node):
+        return '\\url{' + node.text + '}'
+
     def visit_bold(self, node):
         body = '\\textbf{'
         for n in node.body:

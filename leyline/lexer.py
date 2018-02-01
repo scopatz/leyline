@@ -10,6 +10,37 @@ RE_INDENT = re.compile('\n+([ \t]*)[^ \n\t]*')
 RE_SPACES = re.compile('( +)')
 RE_LISTBULLET = re.compile('([-*]|\d+\.) ')
 RE_BULLETS = re.compile('([ \t]*)((?:[-*]|\d+\.) )+')
+# borrowed from https://github.com/rcompton/ryancompton.net/blob/master/assets/praw_drugs/urlmarker.py
+RE_URL = re.compile(
+    r"(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.]"
+    r"(?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|"
+    r"museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|"
+    r"as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|"
+    r"bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|"
+    r"dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|"
+    r"gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|"
+    r"iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|"
+    r"lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|"
+    r"mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|"
+    r"pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|"
+    r"sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|"
+    r"tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|"
+    r"zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|"
+    r"\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|"
+    r"""[^\s`!()\[\]{};:'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*"""
+    r"[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|"
+    r"museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|"
+    r"as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|"
+    r"bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|"
+    r"dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|"
+    r"gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|"
+    r"iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|"
+    r"lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|"
+    r"mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|"
+    r"pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|"
+    r"sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|"
+    r"tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|"
+    r"zm|zw)\b/?(?!@)))")
 
 
 class Lexer(object):
@@ -58,6 +89,11 @@ class Lexer(object):
         r"\$([^\n\$\\]*(?:\\.[^\n\$\\]*)*)\$"
         self._set_column(t)
         t.value = t.value[1:-1]
+        return t
+
+    @ply.lex.TOKEN(RE_URL.pattern)
+    def t_URL(self, t):
+        self._set_column(t)
         return t
 
     def t_LBRACEPERCENTRBRACE(self, t):
@@ -234,7 +270,7 @@ class Lexer(object):
             self._lexer_error(t, "Indentation level doesn't match")
         return t
 
-    text_breaks = '-\n#`${}%*~_^:' + ''.join(k[0] for k in sorted(set(reserved.keys())))
+    text_breaks = '-\n#`${}%*~_^: ' + ''.join(k[0] for k in sorted(set(reserved.keys())))
 
     @ply.lex.TOKEN('[' + text_breaks + ']')
     def t_UNBREAKTEXT(self, t):
