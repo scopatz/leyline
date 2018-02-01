@@ -14,6 +14,10 @@ from leyline.ast import (Node, Document, PlainText, TextBlock, Comment, CodeBloc
     Superscript, Subscript)
 
 
+class LeylineSyntaxError(Exception):
+    ...
+
+
 def _lowest_column(x):
     if isinstance(x, Node):
         return x.column
@@ -206,7 +210,7 @@ class Parser(object):
             loc += ':' + str(lineno)
         if column is not None:
             loc += ':' + str(column)
-        err = SyntaxError('{0}: {1}{2}'.format(loc, msg, err_line_pointer))
+        err = LeylineSyntaxError('{0}: {1}{2}'.format(loc, msg, err_line_pointer))
         err.lineno = loc
         raise err
 

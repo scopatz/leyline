@@ -244,10 +244,15 @@ class Visitor(object):
 class PrettyFormatter(Visitor):
     """Formats a tree of nodes into a pretty string"""
 
-    def __init__(self, tree=None, indent=' '):
+    def __init__(self, tree=None, indent=' ', **kwargs):
         super().__init__(tree=tree)
         self.level = 0
         self.indent = indent
+
+    def render(self, *, tree=None, **kwargs):
+        s = self.visit(tree)
+        print(s)
+        return True
 
     def visit_node(self, node):
         s = node.__class__.__name__ + '('

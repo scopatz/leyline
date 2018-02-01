@@ -11,6 +11,7 @@ from leyline.events import EVENTS_CTX
 
 TARGETS = {
     'gc': ('leyline.assets', 'GC'),
+    'ast': ('leyline.ast', 'PrettyFormatter'),
     'notes': ('leyline.notes', 'Notes'),
     'polly': ('leyline.audio', 'SSML'),
     'dictate': ('leyline.audio', 'Dictation'),
@@ -62,7 +63,7 @@ def main(args=None):
     ns = p.parse_args(args=args)
     with open(ns.filename, 'r') as f:
         s = f.read()
-    tree = parse(s)
+    tree = parse(s, filename=ns.filename)
     make_assets_cache(ns)
     ns.contexts = {'ctx': EVENTS_CTX}
     for target in ns.targets:
