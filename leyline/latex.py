@@ -156,16 +156,32 @@ class Latex(ContextVisitor):
             msg = 'bullets not understood: ' + str(node)
             raise ValueError(msg)
 
-    def _compute_column_widths(self, node):
-        if node.widths != 'auto':
-            raise ValueError('Only "auto" widths are currently supported.')
+    def _compute_column_widths_auto(self, node):
         normcols = len(node.rows[0]) - node.header_cols
         w = '|'
         if node.header_cols > 0:
             w += ('l' * node.header_cols) + '|'
-        w += 'c' * (len(node.rows[0]) - node.header_cols)
+        w += 'c' * normcols
         w += '|'
         return w
+
+    def _compute_column_widths_known(self, node):
+        normcols = len(node.rows[0]) - node.header_cols
+        t = 'p{{{0}\\linewidth}}'
+        widths = [t.format(d*0.9) for d in node.widths]
+        w = '|'
+        if node.header_cols > 0:
+            w += ''.join(widths[:node.header_cols])
+            w += '|'
+        w += ''.join(widths[node.header_cols:])
+        w += '|'
+        return w
+
+    def _compute_column_widths(self, node):
+        if node.widths == 'auto':
+            return self._compute_column_widths_auto(node)
+        else:
+            return self._compute_column_widths_known(node)
 
     def visit_table(self, node):
         widths = self._compute_column_widths(node)
