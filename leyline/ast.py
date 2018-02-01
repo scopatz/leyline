@@ -515,10 +515,13 @@ class AnsiFormatter(Visitor):
         for hrow in node.rows[:node.header_rows]:
             for header, hcol in zip(headers, hrow):
                 header.extend(hcol)
-        headers = list(map(''.join, map(self.visit, headers)))
+        headers = [''.join(h) for h in
+                   [map(self.visit, header) for header in headers]]
+        if len(set(headers)) < ncols:
+            headers = None
         pt = prettytable.PrettyTable(headers)
         for row in node.rows[node.header_rows:]:
-            r = list(map(''.join, map(self.visit, row)))
+            r = [''.join(c) for c in [map(self.visit, col) for col in row]]
             for i in range(node.header_cols):
                 r[i] = '\u001b[1m' + r[i] + '\u001b[0m'
             pt.add_row(r)

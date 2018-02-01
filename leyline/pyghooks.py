@@ -94,7 +94,7 @@ class LeylineLexer(RegexLexer):
             # list bullets
             (r'([ \t]*)((?:[-*]|\d+\.) )+', String.Escape),
             # plain text
-            (r'[^\n#`${}%*^]+', Text),
+            (r'[^\n#`${}%*^_~-]+', Text),
             ],
         # go into python mode for with block
         'withblock': [
