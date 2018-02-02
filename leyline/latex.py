@@ -3,6 +3,11 @@ import os
 
 from leyline.context_visitor import ContextVisitor
 
+def escape(s):
+    """Escapes special latex characters"""
+    return s.replace('%', '\%')
+
+
 class Latex(ContextVisitor):
     """A base leyline visitor for rendering LaTeX."""
 
@@ -20,7 +25,7 @@ class Latex(ContextVisitor):
         return ''
 
     def visit_plaintext(self, node):
-        return node.text
+        return escape(node.text)
 
     def visit_textblock(self, node):
         body = ''
@@ -57,7 +62,7 @@ class Latex(ContextVisitor):
         return s
 
     def visit_inlinemath(self, node):
-        return '$' + node.text + '$'
+        return '$' + escape(node.text) + '$'
 
     def visit_url(self, node):
         return '\\url{' + node.text + '}'
