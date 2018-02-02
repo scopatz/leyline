@@ -99,6 +99,8 @@ HEADER = r"""
 \setbeamercolor*{block title alerted}{parent=alerted text,bg=black!15}
 \setbeamercolor*{block title example}{parent=example text,bg=black!15}
 
+\beamertemplatenavigationsymbolsempty
+
 \begin{document}
 \begin{frame}
 """
