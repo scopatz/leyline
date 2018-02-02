@@ -464,7 +464,21 @@ class Parser(object):
                     return False, str(e)
                 return True, n
 
-            tip = {'widths': widths, 'header_cols': asint, 'header_rows': asint}
+            def stretch(s):
+                s = s.strip()
+                if s == 'None':
+                    return True, None
+                try:
+                    n = float(s)
+                except ValueError as e:
+                    return False, ('Could not convert strech value to None '
+                                   'or float: ' + str(e))
+                if n < 0.0:
+                    return False, "negative stretch not allowed"
+                return True, n
+
+            tip = {'widths': widths, 'stretch': stretch,
+                   'header_cols': asint, 'header_rows': asint}
             self._table_info_parsers = tip
         return self._table_info_parsers
 

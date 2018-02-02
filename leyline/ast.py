@@ -194,6 +194,7 @@ class Table(Node):
     attrs = (('header_rows', 1),
              ('header_cols', 0),
              ('widths', 'auto'),
+             ('stretch', None),
              ('rows', list))
 
 
@@ -354,6 +355,7 @@ class PrettyFormatter(Visitor):
     def visit_table(self, node):
         s = 'Table(lineno={0}, column={1},\n'.format(node.lineno, node.column)
         s += self.indent + 'widths=' + repr(node.widths) + ',\n'
+        s += self.indent + 'stretch=' + repr(node.stretch) + ',\n'
         s += self.indent + 'header_cols=' + repr(node.header_cols) + ',\n'
         s += self.indent + 'header_rows=' + repr(node.header_rows) + ',\n'
         s += self.indent + 'rows=[\n'

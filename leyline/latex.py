@@ -194,6 +194,8 @@ class Latex(ContextVisitor):
     def visit_table(self, node):
         widths = self._compute_column_widths(node)
         s = '\\begin{center}\n'
+        if node.stretch is not None:
+            s += r'\renewcommand{\arraystretch}{' + str(node.stretch) + '}'
         s += '\\begin{tabular}[hctb]{' + widths + '}\n'
         s += '\\hline\n'
         # do header rows
@@ -219,6 +221,8 @@ class Latex(ContextVisitor):
             s += r' \\' + '\n'
         s += '\\hline\n'
         s += '\\end{tabular}\n'
+        if node.stretch is not None:
+            s += r'\renewcommand{\arraystretch}{1}'
         s += '\\end{center}\n'
         return s
 
