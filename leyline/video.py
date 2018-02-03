@@ -306,7 +306,7 @@ class Video(EventsVisitor):
                     continue
                 s += t.format(frame, duration)
         # need to copy last frame to prevent cutoff
-        s += 'file ' + frame + '\n'
+        s += t.format(frame, 0.0)
         # write the ffmpeg concat demuxer file
         ffconcat = basename + '.ffconcat'
         with open(ffconcat, 'w') as f:
