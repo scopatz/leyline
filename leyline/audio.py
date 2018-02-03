@@ -226,19 +226,10 @@ class Dictation(ContextVisitor, AnsiFormatter):
         self.append(paragraphs.pop(0))
         self.blocks.extend(paragraphs)
 
-    def visit_plaintext(self, node):
-        s = node.text
-        self.append_paragraphs(s)
-        return s
-
-    def visit_textblock(self, node):
-        s = self._bodied_visit(node)
-        self.append_paragraphs(s)
-        return s
-
     def visit_document(self, node):
         self.blocks = ['']
-        self._bodied_visit(node)
+        s = self._bodied_visit(node)
+        self.append_paragraphs(s)
         for i in range(len(self.blocks) - 1, -1, -1):
             block = self.blocks[i].strip()
             if block:
@@ -248,53 +239,6 @@ class Dictation(ContextVisitor, AnsiFormatter):
                 # remove empty blocks
                 del self.blocks[i]
         return self.blocks
-
-    def visit_renderfor(self, node):
-        if self.renders not in node.targets:
-            return ''
-        return self._bodied_visit(node)
-
-    def visit_comment(self, node):
-        return ''
-
-    def visit_equation(self, node):
-        s = '$$$\n' + node.text.strip() + '\n$$$\n'
-        self.append(s)
-        return s
-
-    def visit_inlinecode(self, node):
-        s = '`' + node.text + '`'
-        self.append(s)
-        return s
-
-    def visit_inlinemath(self, node):
-        s = '$' + node.text + '$'
-        self.append(s)
-        return s
-
-    def visit_with(self, node):
-        super().visit_with(node)
-        return ''
-
-    def visit_incorporealmacro(self, node):
-        s = super().visit_incorporealmacro(node)
-        return s
-
-    def visit_list(self, node):
-        for bullet, item in node:
-            s = '\u001b[32;1m'
-            s += bullet if isinstance(bullet, str) else str(bullet) + '.'
-            s += '\u001b[0m '
-            self.blocks.append(s)
-            for i in item:
-                self.visit(i)
-            self.append('\n')
-        self.blocks.append('')
-        return ''
-
-    def visit_figure(self, node):
-        s = 'figure:: ' + node.path + '\n' + node.caption
-        return s
 
 
 class Recorder:

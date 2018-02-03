@@ -182,7 +182,7 @@ class List(Node):
         if isinstance(self.bullets, str):
             bullets = itertools.repeat(self.bullets)
         elif isinstance(self.bullets, int):
-            bullets = range(1, self.bullets+1)
+            bullets = range(1, len(self.items)+1)
         else:
             bullets = self.bullets
         yield from zip(bullets, self.items)
@@ -222,7 +222,7 @@ class Visitor(object):
     # which render target this class renders. None means all targets
     renders = None
 
-    def __init__(self, tree=None, lang='python'):
+    def __init__(self, tree=None, lang='python', **kwargs):
         self.tree = tree
         self.lang = lang
 
@@ -423,6 +423,11 @@ class PrettyFormatter(Visitor):
 class AnsiFormatter(Visitor):
     """Creates a pretty version of the table, including ANSI escape sequnces"""
 
+    def render(self, *, tree=None, **kwargs):
+        s = self.visit(tree)
+        print(s)
+        return True
+
     def _empty_visit(self, node):
         return ''
 
@@ -437,6 +442,7 @@ class AnsiFormatter(Visitor):
         return s
 
     visit_document = _bodied_visit
+    visit_textblock = _bodied_visit
     visit_renderfor = _bodied_visit
 
     def visit_bold(self, node):
@@ -504,7 +510,7 @@ class AnsiFormatter(Visitor):
 
     def visit_equation(self, node):
         s = '\n\u001b[40;1m\u001b[37;1m'
-        s += self._bodied_visit(node)
+        s += node.text
         s += '\u001b[0m\n'
         s = indent(s, '  ')
         return s
