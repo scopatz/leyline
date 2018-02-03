@@ -305,7 +305,8 @@ class Video(EventsVisitor):
                 if not subslide:
                     continue
                 s += t.format(frame, duration)
-        s += 'file ' + frame + '\n'  # need to copy last frame to prevent cutoff
+        s += t.format(frame, 0.0)  # need to copy last frame to prevent cutoff
+        #s += 'file ' + frame + '\n'
         # write the ffmpeg concat demuxer file
         ffconcat = basename + '.ffconcat'
         with open(ffconcat, 'w') as f:
