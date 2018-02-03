@@ -238,7 +238,7 @@ class Video(EventsVisitor):
             dictation = self.dictation = Dictation(contexts=self.contexts)
         samplerate = int(dictation.recorder.samplerate)
         channels = 2
-        parbreakdur = 1.3  # number of seconds to break between paragraphs
+        parbreakdur = 0.75  # number of seconds to break between paragraphs
         parbreak = np.zeros((int(samplerate*parbreakdur), channels), dtype='float64')
         oggfile = basename + '.ogg'
         track = sf.SoundFile(oggfile, 'w', samplerate=samplerate,
