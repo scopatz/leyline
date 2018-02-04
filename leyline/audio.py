@@ -6,7 +6,8 @@ import shutil
 
 from lazyasd import lazyobject
 
-from leyline.ast import indent, AnsiFormatter, Visitor
+from leyline.ast import indent, Visitor
+from leyline.ansi import AnsiFormatter
 from leyline.context_visitor import ContextVisitor
 
 
@@ -144,7 +145,7 @@ class SSML(ContextVisitor):
         return ''
 
 
-class Dictation(ContextVisitor, AnsiFormatter):
+class Dictation(AnsiFormatter):
     """A context visitor that renders the document by recording audio from the
     microphone. Audio is chunked into small blocks and cached for later use.
     Users should only need to record a certain block once.
