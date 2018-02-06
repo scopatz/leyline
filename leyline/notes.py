@@ -1,5 +1,6 @@
 """A leyline visitor for rendering lecture notes (via LaTeX)."""
 import os
+import subprocess
 
 from leyline.latex import Latex
 
@@ -70,6 +71,7 @@ class Notes(Latex):
         outfile = basename + '.tex'
         with open(outfile, 'w') as f:
             f.write(s)
+        subprocess.check_call(['pdflatex', outfile])
         return True
 
     def _make_title(self):
