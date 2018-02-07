@@ -35,6 +35,37 @@ You can use ``conda`` or ``pip`` to install leyline. For example,
 ===========
 Quick Start
 ===========
+First, open up and write a file called,
+
+**test.ley**
+
+.. code-block:: leyline
+
+    with meta::
+        title = 'On the Nature of Impure Lactose Solutions'
+        author = 'Dr. Milk, Ph.D.'
+
+    {{slide('Abstract')}}
+    As with our simian servants, us cats can also be ~~lactose intolerant~~.
+    While society may see this a socialy stigmatizing problem, it’s actually
+    completely normal.
+    {{subslide}}
+    This work investigates a major potential alternative to
+    traditional milk sources: __**cream**__. This study concludes that all felines
+    should be given a limitless supply of cream, especially durring the
+    crucial 1{^st^} year of life.
+    {{subslide}}
+    $$$
+    S_{\mathrm{cream}} \to \infty
+    $$$
+    {{subslide}}
+    Or computationally:
+    ```python
+    cream = 0.0
+    while True:
+        cream += 1.0
+    ```
+
 
 =========
 Contents
