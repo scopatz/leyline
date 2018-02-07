@@ -5,7 +5,7 @@ targets from a single document. As with most markup languages, the twin goals of
 and power must be balanced. Currently, leyline can render into:
 
 * PDFs
-* Audio files (ogg, etc.)
+* Audio files (mp3, ogg, etc.)
 * Videos (mp4), and
 * ANSI escape sequence text for printing at the terminal.
 
