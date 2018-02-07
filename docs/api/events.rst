@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_events:
 
 ********************************************************************************
- (``leyline.mod``)
+Events System (``leyline.events``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.events
     :members:
     :undoc-members:
     :inherited-members:

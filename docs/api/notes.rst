@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_notes:
 
 ********************************************************************************
- (``leyline.mod``)
+Notes (``leyline.notes``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.notes
     :members:
     :undoc-members:
     :inherited-members:

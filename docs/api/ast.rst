@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_ast:
 
 ********************************************************************************
- (``leyline.mod``)
+Abstract Syntax Tree (``leyline.ast``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.ast
     :members:
     :undoc-members:
     :inherited-members:

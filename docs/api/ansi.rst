@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_ansi:
 
 ********************************************************************************
- (``leyline.mod``)
+ANSI Formatter (``leyline.ansi``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.ansi
     :members:
     :undoc-members:
     :inherited-members:

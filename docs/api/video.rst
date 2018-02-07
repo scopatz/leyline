@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_video:
 
 ********************************************************************************
- (``leyline.mod``)
+Video (``leyline.video``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.video
     :members:
     :undoc-members:
     :inherited-members:

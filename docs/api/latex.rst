@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_latex:
 
 ********************************************************************************
- (``leyline.mod``)
+LaTeX (``leyline.latex``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.latex
     :members:
     :undoc-members:
     :inherited-members:

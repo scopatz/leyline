@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_context_visitor:
 
 ********************************************************************************
- (``leyline.mod``)
+Context Visitor (``leyline.context_visitor``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.context_visitor
     :members:
     :undoc-members:
     :inherited-members:

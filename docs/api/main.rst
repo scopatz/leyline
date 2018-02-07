@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_main:
 
 ********************************************************************************
- (``leyline.mod``)
+CLI Entry Point (``leyline.main``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.main
     :members:
     :undoc-members:
     :inherited-members:

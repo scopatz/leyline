@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_assets:
 
 ********************************************************************************
- (``leyline.mod``)
+Assets Cache (``leyline.assets``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.assets
     :members:
     :undoc-members:
     :inherited-members:

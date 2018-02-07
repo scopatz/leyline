@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_lexer:
 
 ********************************************************************************
- (``leyline.mod``)
+Lexer (``leyline.lexer``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.lexer
     :members:
     :undoc-members:
     :inherited-members:

@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_audio:
 
 ********************************************************************************
- (``leyline.mod``)
+Audio (``leyline.audio``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.audio
     :members:
     :undoc-members:
     :inherited-members:

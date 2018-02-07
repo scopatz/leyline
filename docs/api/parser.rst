@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_parser:
 
 ********************************************************************************
- (``leyline.mod``)
+Parser (``leyline.parser``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.parser
     :members:
     :undoc-members:
     :inherited-members:

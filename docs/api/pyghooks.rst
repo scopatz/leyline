@@ -1,10 +1,10 @@
-.. _leyline_mod:
+.. _leyline_pyghooks:
 
 ********************************************************************************
- (``leyline.mod``)
+Pygments Hooks (``leyline.pyghooks``)
 ********************************************************************************
 
-.. automodule:: leyline.mod
+.. automodule:: leyline.pyghooks
     :members:
     :undoc-members:
     :inherited-members:
