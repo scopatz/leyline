@@ -54,7 +54,9 @@ First, open up and write a file called,
     traditional milk sources: __**cream**__. This study concludes that all felines
     should be given a limitless supply of cream, especially durring the
     crucial 1{^st^} year of life.
-    {{subslide}}
+
+    {{slide('Modeling')}}
+    Mathematically, we can model the supply of cream as,
     $$$
     S_{\mathrm{cream}} \to \infty
     $$$
