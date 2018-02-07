@@ -1,5 +1,17 @@
 Leyline
 ============================
+Leyline is a markup language with the aim of supporting textual, audio, and visual rendering
+targets from a single document. As with most markup languages, the twin goals of expressability
+and power must be balanced. Currently, leyline can render into:
+
+* PDFs
+* Audio files (ogg, etc.)
+* Videos (mp4), and
+* ANSI escape sequence text for printing at the terminal.
+
+We are open to building front ends from other languages, such as markdown, LaTeX, rst,
+asciidoc, jinja, and others! Those languages would then have acces to the same great
+renders already in leyline.
 
 ==================
 Installation
