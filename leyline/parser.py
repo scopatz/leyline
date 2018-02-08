@@ -44,8 +44,6 @@ def _figure_scale_parse(x):
         x = float(x)
     except ValueError as e:
         return False, str(e)
-    if x > 1.0:
-        return False, 'figure scale must be less than or equal to 1.0'
     if x < 0.0:
         return False, 'figure scale must be greater than or equal to 0.0'
     return True, x
