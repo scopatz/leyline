@@ -16,6 +16,7 @@ HEADER = r"""\documentclass[12pt]{article}
 \usepackage[normalem]{ulem}
 \usepackage[export]{adjustbox}
 \usepackage{amssymb}
+\usepackage{wasysym}
 \usepackage{amsmath}
 \usepackage{hyperref}
 \DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
