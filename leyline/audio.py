@@ -354,8 +354,8 @@ class Recorder:
             text = ' ' + str(status) + ' '
             print('\x1b[34;40m', text.center(self.columns, '#'),
                   '\x1b[0m', sep='', end='\r', flush=True)
+        self.blocks.put(indata.copy())
         if indata.any():
-            self.blocks.put(indata.copy())
             magnitude = np.abs(np.fft.rfft(indata[:, 0], n=self.fft_size))
             magnitude *= self.gain / self.fft_size
             line = (self.gradient[int(np.clip(x, 0, 1) * (len(self.gradient) - 1))]
