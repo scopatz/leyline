@@ -79,7 +79,7 @@ class AnsiFormatter(ContextVisitor):
 
     def visit_comment(self, node):
         s = '"\u001b[8m'
-        s += self._bodied_visit(node)
+        s += node.text
         s += '\u001b[0m'
         return s
 
